@@ -42,7 +42,8 @@ function canSee(c: Client, e: ChangeEvent): boolean {
 }
 
 export function broadcast(e: ChangeEvent) {
-  const msg = JSON.stringify({ type: 'change', ...e, drivers: undefined });
+  // `event` es el tipo de request_event (created, rejected…) cuando aplica.
+  const msg = JSON.stringify({ type: 'change', table: e.table, op: e.op, id: e.id, city: e.city, event: e.type ?? null });
   for (const c of clients) {
     if (c.socket.readyState === c.socket.OPEN && canSee(c, e)) c.socket.send(msg);
   }

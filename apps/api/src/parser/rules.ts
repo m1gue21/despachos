@@ -81,7 +81,12 @@ function clause(raw: string, start: RegExp, stop: RegExp): string | null {
   if (!m) return null;
   const rest = raw.slice(m.index + m[0].length);
   const end = rest.search(stop);
-  const text = (end === -1 ? rest : rest.slice(0, end)).trim().replace(/[,.;:]+$/, '');
+  const text = (end === -1 ? rest : rest.slice(0, end))
+    .trim()
+    .replace(/[,.;:]+$/, '')
+    // Muletillas al final: "para la enea ya", "al centro porfa".
+    .replace(/(\s+(ya|porfa|por favor|pls|urgente|rapido|rápido|ahora|de una))+$/i, '')
+    .trim();
   return text.length >= 3 && text.length <= 80 ? text : null;
 }
 
@@ -139,11 +144,21 @@ export function parseWithRules(raw: string, sectors: SectorRef[]): ParsedRequest
       : dropoffSector.name
     : null;
 
+  // Si el texto es solo el nombre o alias del sector ("enea"), se muestra el
+  // nombre oficial ("La Enea").
+  const canonical = (text: string | null, slug: string | null) => {
+    const sector = sectors.find((s) => s.slug === slug);
+    if (!text || !sector) return text;
+    const terms = [sector.name, ...sector.aliases].map(norm).flatMap((x) => [x, x.replace(/^(el|la|los|las)\s+/, '')]);
+    const t2 = norm(text).replace(/^(el|la|los|las)\s+/, '');
+    return terms.includes(t2) ? sector.name : text;
+  };
+
   return {
     service,
-    pickup_text: pickupText,
+    pickup_text: canonical(pickupText, pickupSlug),
     pickup_sector_slug: pickupSlug,
-    dropoff_text: dropoffText,
+    dropoff_text: canonical(dropoffText, dropoffSlug),
     dropoff_sector_slug: dropoffSlug,
     customer_name: extractName(raw),
     customer_phone: extractPhone(raw),
