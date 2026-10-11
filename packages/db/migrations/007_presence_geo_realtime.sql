@@ -83,7 +83,8 @@ create trigger driver_presence_rules
 -- Tablero de conductores: ficha + presencia + caducidad. security_invoker
 -- para que la RLS de drivers y driver_presence siga aplicando.
 create view driver_board with (security_invoker = true) as
-  select d.id, d.city_zone_id, d.display_name, d.phone, d.vehicle, d.plate, d.service_types,
+  -- service_types como text[]: el driver de Node no convierte arreglos de enums.
+  select d.id, d.city_zone_id, d.display_name, d.phone, d.vehicle, d.plate, d.service_types::text[] as service_types,
          d.has_app, d.active, d.profile_id,
          p.status, p.location_mode, p.sector_zone_id, s.name as sector_name,
          st_y(p.position::geometry) as lat, st_x(p.position::geometry) as lng,
@@ -131,7 +132,7 @@ begin
            coalesce(b.sector_zone_id = r.pickup_sector_id, false) as same_sector
     from driver_board b
     where b.city_zone_id = r.city_zone_id and b.active and b.status = 'available' and not b.is_stale
-      and r.service = any (b.service_types)
+      and r.service::text = any (b.service_types)
   ) c
   -- Sin distancia calculable (sin posición ni centro) se incluye igual.
   where c.distance_m is null or c.distance_m <= p_radius_m

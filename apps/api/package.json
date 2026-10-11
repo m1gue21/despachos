@@ -7,7 +7,8 @@
     "start": "tsx src/server.ts",
     "test": "tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "eval:parser": "tsx test/eval-parser-llm.ts"
+    "eval:parser": "tsx test/eval-parser-llm.ts",
+    "simulate": "tsx scripts/simulate.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
