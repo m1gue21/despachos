@@ -45,7 +45,7 @@ docker-compose.yml   Postgres 16 + PostGIS
 ```bash
 pnpm install
 pnpm db:up          # Postgres + PostGIS en el puerto 5433
-pnpm db:reset       # migraciones + seed (borra y recrea la base de desarrollo)
+pnpm db:reset       # migraciones + seed + conductores de demo (borra y recrea la base de desarrollo)
 pnpm dev            # API en :4000 y panel en http://localhost:3000
 ```
 
@@ -61,6 +61,13 @@ aparecen (salvo que se fuerce con `NEXT_PUBLIC_DEMO_LOGINS=1` o
 | `op.manizales@despacho.local` | operadora de Manizales |
 | `op.villamaria@despacho.local` | operador de Villamaría |
 | `ana@despacho.local`, `bruno@despacho.local` | conductores con app |
+| `camila@`, `jhon@`, `luzmarina@`, `andres@`, `valentina@despacho.local` | conductores de demo con app |
+
+Además del seed mínimo, `db:reset` carga `packages/db/seed-demo.sql`: 12
+conductores y mensajeros más con estados variados (disponibles por sector,
+uno en vivo, una desactualizada, dos ocupados con servicio en curso, uno
+desconectado, una inactiva y dos en Villamaría). Para omitirlos:
+`pnpm db:reset -- --no-demo`. Los tests no los usan.
 
 Para ver el mapa con movimiento:
 

@@ -1,5 +1,6 @@
 // Borra el esquema public y lo recrea: migraciones en orden + seed.
 // Equivale a `supabase db reset`. Solo para desarrollo local.
+// Flags: --no-seed (base vacía), --no-demo (sin conductores de demostración).
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import pg from 'pg';
@@ -38,6 +39,12 @@ try {
     process.stdout.write('seed… ');
     await client.query(`begin; ${await readFile(join(root, 'seed.sql'), 'utf8')}; commit;`);
     console.log('ok');
+    // Conductores de demostración: solo en desarrollo (los tests usan el seed mínimo).
+    if (process.env.DB_TEST !== '1' && !process.argv.includes('--no-demo')) {
+      process.stdout.write('seed de demostración… ');
+      await client.query(`begin; ${await readFile(join(root, 'seed-demo.sql'), 'utf8')}; commit;`);
+      console.log('ok');
+    }
   }
 } catch (err) {
   await client.query('rollback').catch(() => {});
