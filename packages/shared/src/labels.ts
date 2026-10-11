@@ -1,6 +1,6 @@
 // Textos de UI en español (Colombia), centralizados para i18n.
-import type { DriverStatus, LocationMode, RequestStatus, ServiceType, VehicleType } from './enums.js';
-import type { RequestRow } from './api-types.js';
+import type { DriverStatus, LocationMode, RequestStatus, ServiceType, VehicleType } from './enums';
+import type { RequestRow } from './api-types';
 
 export const REQUEST_STATUS_LABEL: Record<RequestStatus, string> = {
   created: 'Sin asignar',

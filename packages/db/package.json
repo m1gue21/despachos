@@ -5,7 +5,7 @@
   "scripts": {
     "reset": "tsx src/reset.ts",
     "create-admin": "tsx src/create-admin.ts",
-    "test": "tsx --test test/*.test.ts",
+    "test": "DB_TEST=1 tsx src/reset.ts && DB_TEST=1 tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

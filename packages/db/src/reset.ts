@@ -8,6 +8,22 @@ import { DATABASE_URL } from './env.js';
 const root = join(import.meta.dirname, '..');
 const migrationsDir = join(root, 'migrations');
 
+// Crea la base si no existe (p. ej. despacho_test la primera vez).
+async function ensureDatabase(url: string) {
+  const target = new URL(url);
+  const name = target.pathname.slice(1);
+  target.pathname = '/postgres';
+  const admin = new pg.Client({ connectionString: target.toString() });
+  await admin.connect();
+  try {
+    const { rowCount } = await admin.query('select 1 from pg_database where datname = $1', [name]);
+    if (!rowCount) await admin.query(`create database "${name.replace(/"/g, '')}"`);
+  } finally {
+    await admin.end();
+  }
+}
+
+await ensureDatabase(DATABASE_URL);
 const client = new pg.Client({ connectionString: DATABASE_URL });
 await client.connect();
 try {

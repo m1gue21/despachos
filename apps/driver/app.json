@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Despacho Conductor",
+    "slug": "despacho-conductor",
+    "scheme": "despachoconductor",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "co.despacho.conductor",
+      "infoPlist": {
+        "UIBackgroundModes": ["location"]
+      }
+    },
+    "android": {
+      "package": "co.despacho.conductor",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": ["REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"],
+      "predictiveBackGestureEnabled": false,
+      "usesCleartextTraffic": true
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true,
+          "locationAlwaysAndWhenInUsePermission": "Compartimos tu ubicación con el operador solo mientras tienes activado \"Ubicación en vivo\".",
+          "locationWhenInUsePermission": "Usamos tu ubicación para que el operador te asigne servicios cercanos."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#1d4ed8",
+          "defaultChannel": "offers"
+        }
+      ]
+    ]
+  }
+}

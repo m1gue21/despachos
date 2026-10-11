@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { it } from 'node:test';
-import { colombianPhoneSchema, newRequestSchema } from './schemas.js';
+import { colombianPhoneSchema, newRequestSchema } from './schemas';
 
 it('normaliza celulares colombianos', () => {
   assert.equal(colombianPhoneSchema.parse('+57 320 123 4567'), '3201234567');

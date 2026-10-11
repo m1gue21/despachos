@@ -10,7 +10,7 @@ import type {
   VehicleType,
   WhatsappGroupKind,
   ZoneLevel,
-} from './enums.js';
+} from './enums';
 
 export interface Profile {
   id: string;

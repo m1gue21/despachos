@@ -7,7 +7,7 @@ import {
   SERVICE_TYPES,
   USER_ROLES,
   VEHICLE_TYPES,
-} from './enums.js';
+} from './enums';
 
 export const userRoleSchema = z.enum(USER_ROLES);
 export const serviceTypeSchema = z.enum(SERVICE_TYPES);
