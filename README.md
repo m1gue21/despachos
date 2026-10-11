@@ -49,7 +49,11 @@ pnpm db:reset       # migraciones + seed (borra y recrea la base de desarrollo)
 pnpm dev            # API en :4000 y panel en http://localhost:3000
 ```
 
-Entra al panel con un usuario del seed (contraseña `dev12345`, **solo local**):
+Entra al panel con un usuario del seed (contraseña `dev12345`, **solo local**).
+En desarrollo, el login del panel y el de la app muestran botones de "Cuentas
+de prueba" que rellenan correo y contraseña; en builds de producción no
+aparecen (salvo que se fuerce con `NEXT_PUBLIC_DEMO_LOGINS=1` o
+`EXPO_PUBLIC_DEMO_LOGINS=1` para una demo).
 
 | Usuario | Rol |
 |---|---|
