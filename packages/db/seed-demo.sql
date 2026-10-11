@@ -62,7 +62,9 @@ insert into drivers (id, profile_id, city_zone_id, display_name, phone, vehicle,
    '10000000-0000-0000-0000-000000000002', 'Mateo (sin app)', '3120000007', 'moto', null, '{delivery,ride}', false, true);
 
 -- ── Presencia ───────────────────────────────────────────────────────────
--- Por zona, confirmados hace poco.
+-- Por zona, con confirmaciones de hace unos minutos. El trigger de presencia
+-- renovaría zone_confirmed_at a "ahora", así que se apaga un momento.
+alter table driver_presence disable trigger driver_presence_rules;
 update driver_presence p
 set status = v.status::driver_status, location_mode = 'zone', zone_confirmed_at = now() - make_interval(mins => v.mins),
     sector_zone_id = (select id from zones where slug = v.sector)
@@ -78,8 +80,6 @@ from (values
 where p.driver_id = v.id::uuid;
 
 -- Sofía: confirmó su zona hace 2 horas → sale "desactualizado".
--- (Se apaga el trigger un momento porque renueva zone_confirmed_at.)
-alter table driver_presence disable trigger driver_presence_rules;
 update driver_presence
 set status = 'available', location_mode = 'zone', zone_confirmed_at = now() - interval '2 hours',
     sector_zone_id = (select id from zones where slug = 'manizales-fatima')
