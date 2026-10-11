@@ -1,0 +1,21 @@
+{
+  "name": "@despacho/db",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "reset": "tsx src/reset.ts",
+    "create-admin": "tsx src/create-admin.ts",
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@despacho/shared": "workspace:*",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

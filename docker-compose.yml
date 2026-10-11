@@ -1,0 +1,20 @@
+# Base de datos local del MVP. Imagen multi-arquitectura de PostGIS
+# (la oficial postgis/postgis solo publica amd64).
+services:
+  db:
+    image: imresamu/postgis:16-3.5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: despacho
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d despacho"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+volumes:
+  db-data:
