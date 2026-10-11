@@ -20,14 +20,19 @@ interface Props {
   // Modo edición de zonas: clic en el mapa.
   onMapClick?: (lngLat: { lng: number; lat: number }) => void;
   draftPolygon?: [number, number][] | null;
+  // Centrar el mapa en un punto (cambia `key` para repetir el mismo punto).
+  focus?: { lat: number; lng: number; key: number } | null;
+  selectedDriverId?: string | null;
   className?: string;
 }
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
-function driverPin(d: DriverRow): HTMLElement {
+function driverPin(d: DriverRow, selected = false): HTMLElement {
   const el = document.createElement('div');
-  el.style.cssText = `width:30px;height:30px;border-radius:50%;background:#fff;border:3px solid ${STATUS_COLOR[d.status]};
+  const size = selected ? 40 : 30;
+  el.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;background:#fff;border:3px solid ${STATUS_COLOR[d.status]};
+    outline:${selected ? '3px solid #1d4ed8' : 'none'};outline-offset:2px;z-index:${selected ? 10 : 1};
     display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3);
     position:relative;opacity:${d.is_stale ? 0.45 : 1}`;
   el.innerHTML = `${VEHICLE_ICON[d.vehicle]}${
@@ -37,7 +42,7 @@ function driverPin(d: DriverRow): HTMLElement {
   return el;
 }
 
-function sectorBubble(drivers: DriverRow[], sectorName: string): HTMLElement {
+function sectorBubble(drivers: DriverRow[], sectorName: string, selected = false): HTMLElement {
   const el = document.createElement('div');
   const count = (s: DriverRow['status']) => drivers.filter((d) => d.status === s).length;
   const dots = (['available', 'busy', 'offline'] as const)
@@ -45,7 +50,7 @@ function sectorBubble(drivers: DriverRow[], sectorName: string): HTMLElement {
     .map((s) => `<span style="display:inline-flex;align-items:center;gap:2px"><i style="width:8px;height:8px;border-radius:50%;background:${STATUS_COLOR[s]};display:inline-block"></i>${count(s)}</span>`)
     .join(' ');
   const stale = drivers.filter((d) => d.is_stale).length;
-  el.style.cssText = `background:#fff;border:1px solid #d4d4d8;border-radius:14px;padding:3px 8px;font:600 11px system-ui;
+  el.style.cssText = `background:${selected ? '#dbeafe' : '#fff'};border:${selected ? '2px solid #1d4ed8' : '1px solid #d4d4d8'};border-radius:14px;padding:3px 8px;font:600 11px system-ui;
     display:flex;gap:6px;align-items:center;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.25);white-space:nowrap`;
   el.innerHTML = `<span style="color:#52525b">${esc(sectorName)}</span>${dots}${stale ? `<span style="color:#ea580c">⚠${stale}</span>` : ''}`;
   el.title = drivers.map((d) => `${d.display_name} (${DRIVER_STATUS_LABEL[d.status]}${d.is_stale ? ', desactualizado' : ''})`).join('\n');
@@ -71,6 +76,8 @@ export function MapView({
   onSelectDriver,
   onMapClick,
   draftPolygon,
+  focus,
+  selectedDriverId,
   className,
 }: Props) {
   const container = useRef<HTMLDivElement>(null);
@@ -114,6 +121,13 @@ export function MapView({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Centrar en el conductor elegido.
+  useEffect(() => {
+    if (ready && focus && map.current) {
+      map.current.flyTo({ center: [focus.lng, focus.lat], zoom: Math.max(map.current.getZoom(), 15) });
+    }
+  }, [ready, focus]);
 
   // Recentrar al cambiar de ciudad.
   useEffect(() => {
@@ -168,7 +182,7 @@ export function MapView({
     // Conductores en vivo: pin exacto.
     for (const d of drivers) {
       if (d.location_mode === 'live' && d.lat != null && d.lng != null && d.status !== 'offline') {
-        add(driverPin(d), d.lng, d.lat, () => onSelectDriver?.(d.id));
+        add(driverPin(d, d.id === selectedDriverId), d.lng, d.lat, () => onSelectDriver?.(d.id));
       }
     }
     // Conductores por zona: agrupados en el centro del sector.
@@ -181,7 +195,13 @@ export function MapView({
     }
     for (const group of bySector.values()) {
       const first = group[0]!;
-      add(sectorBubble(group, first.sector_name ?? ''), first.sector_lng!, first.sector_lat!, () => onSelectDriver?.(first.id));
+      const selected = group.find((d) => d.id === selectedDriverId);
+      add(
+        sectorBubble(group, first.sector_name ?? '', Boolean(selected)),
+        first.sector_lng!,
+        first.sector_lat!,
+        () => onSelectDriver?.((selected ?? first).id),
+      );
     }
     // Solicitudes abiertas: en la posición o, si no, cerca del centro del sector.
     requests.forEach((r, i) => {
@@ -197,7 +217,7 @@ export function MapView({
       }
       add(requestPin(r, r.id === selectedRequestId), lng, lat, () => onSelectRequest?.(r.id), 'bottom');
     });
-  }, [ready, drivers, requests, selectedRequestId, onSelectDriver, onSelectRequest]);
+  }, [ready, drivers, requests, selectedRequestId, selectedDriverId, onSelectDriver, onSelectRequest]);
 
   return <div ref={container} className={className ?? 'h-full w-full'} />;
 }

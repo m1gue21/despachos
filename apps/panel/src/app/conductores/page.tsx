@@ -8,10 +8,12 @@ import {
   VEHICLE_LABEL,
   VEHICLE_TYPES,
   type VehicleType,
+  type Zone,
 } from '@despacho/shared';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { AppShell } from '@/components/AppShell';
 import { DRIVER_DOT } from '@/components/DriverPanel';
+import { DriversMap } from '@/components/DriversMap';
 import { Badge, Button, Dialog, ErrorText, Field, Input, Select, cn } from '@/components/ui';
 import { api } from '@/lib/api';
 import { phonePretty } from '@/lib/format';
@@ -31,9 +33,29 @@ interface Form {
 const EMPTY: Form = { display_name: '', phone: '', vehicle: 'moto', plate: '', service_types: ['delivery'], active: true };
 
 export default function DriversPage() {
-  const { cityId } = useSession();
+  const { cityId, city } = useSession();
   const toast = useToast();
-  const drivers = useApi<DriverRow[]>(cityId ? `/drivers?city=${cityId}&all=1` : null, { tables: ['drivers'], city: cityId });
+  // Presencia incluida: la vista de mapa se actualiza en vivo; la caducidad
+  // depende del reloj, por eso también recarga cada 30 s.
+  const drivers = useApi<DriverRow[]>(cityId ? `/drivers?city=${cityId}&all=1` : null, {
+    tables: ['drivers', 'driver_presence', 'requests'],
+    city: cityId,
+    intervalMs: 30_000,
+  });
+  const zones = useApi<Zone[]>(cityId ? `/zones?city=${cityId}` : null, { tables: ['zones'] });
+  const sectors = (zones.data ?? []).filter((z) => z.level === 'sector');
+  const [view, setView] = useState<'lista' | 'mapa'>('lista');
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('despacho.conductores.vista') === 'mapa') setView('mapa');
+    } catch {}
+  }, []);
+  const changeView = (v: 'lista' | 'mapa') => {
+    setView(v);
+    try {
+      localStorage.setItem('despacho.conductores.vista', v);
+    } catch {}
+  };
   const [editing, setEditing] = useState<DriverRow | 'new' | null>(null);
   const [form, setForm] = useState<Form>(EMPTY);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +99,9 @@ export default function DriversPage() {
     e.preventDefault();
     if (!inviting) return;
     try {
-      const c = await api<{ email: string; password: string }>(`/drivers/${inviting.id}/invite`, { body: { email: inviteEmail } });
+      const c = await api<{ email: string; password: string }>(`/drivers/${inviting.id}/invite`, {
+        body: { email: inviteEmail },
+      });
       setCredentials(c);
       setInviting(null);
       void drivers.reload();
@@ -94,62 +118,94 @@ export default function DriversPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-5xl space-y-4 overflow-y-auto p-6" style={{ height: '100%' }}>
-        <div className="flex items-center justify-between">
+      <div className="flex h-full flex-col">
+        <div className="flex shrink-0 items-center gap-4 border-b border-border bg-card px-6 py-3">
           <h1 className="text-lg font-semibold">Conductores</h1>
-          <Button onClick={() => openForm('new')}>Agregar conductor</Button>
-        </div>
-        <table className="w-full overflow-hidden rounded-lg border border-border bg-card text-sm">
-          <thead className="bg-muted text-left text-xs text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">Nombre</th>
-              <th className="px-3 py-2">Teléfono</th>
-              <th className="px-3 py-2">Vehículo</th>
-              <th className="px-3 py-2">Servicios</th>
-              <th className="px-3 py-2">App</th>
-              <th className="px-3 py-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {(drivers.data ?? []).map((d) => (
-              <tr key={d.id} className={cn('border-t border-border', !d.active && 'opacity-50')}>
-                <td className="px-3 py-2">
-                  <span className={cn('mr-2 inline-block h-2 w-2 rounded-full', DRIVER_DOT[d.status])} />
-                  {d.display_name} {!d.active && <Badge className="bg-zinc-100">inactivo</Badge>}
-                </td>
-                <td className="px-3 py-2">{phonePretty(d.phone)}</td>
-                <td className="px-3 py-2">
-                  {VEHICLE_LABEL[d.vehicle]} {d.plate && <span className="text-muted-foreground">· {d.plate}</span>}
-                </td>
-                <td className="px-3 py-2">{d.service_types.map((s) => SERVICE_LABEL[s]).join(', ')}</td>
-                <td className="px-3 py-2">
-                  {d.has_app ? (
-                    <Badge className="bg-green-100 text-green-700">con app</Badge>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setInviting(d);
-                        setInviteEmail('');
-                      }}
-                    >
-                      Invitar a la app
-                    </Button>
-                  )}
-                </td>
-                <td className="px-3 py-2 text-right">
-                  <Button size="sm" variant="ghost" onClick={() => openForm(d)}>
-                    Editar
-                  </Button>
-                </td>
-              </tr>
+          <div className="flex rounded-md border border-border p-0.5" role="tablist" aria-label="Vista">
+            {(['lista', 'mapa'] as const).map((v) => (
+              <button
+                key={v}
+                role="tab"
+                aria-selected={view === v}
+                onClick={() => changeView(v)}
+                className={cn(
+                  'rounded px-3 py-1 text-sm font-medium',
+                  view === v ? 'bg-foreground text-white' : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {v === 'lista' ? 'Lista' : 'Mapa'}
+              </button>
             ))}
-          </tbody>
-        </table>
+          </div>
+          <Button className="ml-auto" onClick={() => openForm('new')}>
+            Agregar conductor
+          </Button>
+        </div>
+        <div className="min-h-0 flex-1">
+          {view === 'mapa' ? (
+            <DriversMap drivers={drivers.data ?? []} sectors={sectors} city={city} />
+          ) : (
+            <div className="h-full overflow-y-auto">
+              <div className="mx-auto max-w-5xl p-6">
+                <table className="w-full overflow-hidden rounded-lg border border-border bg-card text-sm">
+                  <thead className="bg-muted text-left text-xs text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-2">Nombre</th>
+                      <th className="px-3 py-2">Teléfono</th>
+                      <th className="px-3 py-2">Vehículo</th>
+                      <th className="px-3 py-2">Servicios</th>
+                      <th className="px-3 py-2">App</th>
+                      <th className="px-3 py-2" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(drivers.data ?? []).map((d) => (
+                      <tr key={d.id} className={cn('border-t border-border', !d.active && 'opacity-50')}>
+                        <td className="px-3 py-2">
+                          <span className={cn('mr-2 inline-block h-2 w-2 rounded-full', DRIVER_DOT[d.status])} />
+                          {d.display_name} {!d.active && <Badge className="bg-zinc-100">inactivo</Badge>}
+                        </td>
+                        <td className="px-3 py-2">{phonePretty(d.phone)}</td>
+                        <td className="px-3 py-2">
+                          {VEHICLE_LABEL[d.vehicle]} {d.plate && <span className="text-muted-foreground">· {d.plate}</span>}
+                        </td>
+                        <td className="px-3 py-2">{d.service_types.map((s) => SERVICE_LABEL[s]).join(', ')}</td>
+                        <td className="px-3 py-2">
+                          {d.has_app ? (
+                            <Badge className="bg-green-100 text-green-700">con app</Badge>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setInviting(d);
+                                setInviteEmail('');
+                              }}
+                            >
+                              Invitar a la app
+                            </Button>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          <Button size="sm" variant="ghost" onClick={() => openForm(d)}>
+                            Editar
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <Dialog open={editing !== null} onClose={() => setEditing(null)} title={editing === 'new' ? 'Nuevo conductor' : 'Editar conductor'}>
+      <Dialog
+        open={editing !== null}
+        onClose={() => setEditing(null)}
+        title={editing === 'new' ? 'Nuevo conductor' : 'Editar conductor'}
+      >
         <form onSubmit={save} className="space-y-3">
           <Field label="Nombre">
             <Input value={form.display_name} onChange={(e) => setForm({ ...form, display_name: e.target.value })} required />
