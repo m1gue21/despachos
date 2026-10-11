@@ -6,6 +6,7 @@ import pg from 'pg';
 import type { WebSocket } from 'ws';
 import type { Session } from './auth.js';
 import { config } from './config.js';
+import { sendOfferPush } from './push.js';
 
 export interface ChangeEvent {
   table: string;
@@ -62,7 +63,11 @@ export function startListener(log: FastifyBaseLogger) {
     client.on('notification', (n) => {
       if (n.channel !== 'changes' || !n.payload) return;
       try {
-        broadcast(JSON.parse(n.payload) as ChangeEvent);
+        const e = JSON.parse(n.payload) as ChangeEvent;
+        broadcast(e);
+        if (e.table === 'request_events' && e.type === 'offered' && e.id && e.drivers?.[0]) {
+          void sendOfferPush(e.drivers[0], e.id, log);
+        }
       } catch (err) {
         log.warn({ err }, 'aviso de tiempo real ilegible');
       }

@@ -4,6 +4,7 @@ import Fastify from 'fastify';
 import { verifyToken } from './auth.js';
 import { config } from './config.js';
 import { appPool, ownerPool, withUser } from './db.js';
+import { pushEnabled } from './push.js';
 import { errorHandler } from './errors.js';
 import { startJobs } from './jobs.js';
 import { addClient, startListener } from './realtime.js';
@@ -31,7 +32,7 @@ export async function buildServer() {
 
   app.get('/health', async () => {
     await ownerPool.query('select 1');
-    return { ok: true, parser: config.anthropicKey && config.anthropicModel ? 'llm' : 'rules' };
+    return { ok: true, parser: config.anthropicKey && config.anthropicModel ? 'llm' : 'rules', push: pushEnabled ? 'fcm' : 'off' };
   });
 
   // WebSocket: /ws?token=<jwt>. Solo avisos (ids); los datos se piden por HTTP.
