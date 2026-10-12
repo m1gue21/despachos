@@ -123,6 +123,16 @@ mensajero comparte en vivo, su posición en el mapa con una línea recta hasta
 el próximo punto y un tiempo estimado. No muestra datos del cliente ni el
 teléfono del mensajero. Vence a las 12 h o 30 min después de cerrar el servicio.
 
+Para ver un ejemplo en movimiento (con la base cargada con `db:reset` y el
+API corriendo):
+
+```bash
+pnpm demo:tracking
+```
+
+Imprime el enlace del cliente y mueve a Luz Marina de Chipre al aeropuerto
+cada 3 s. Ábrelo en el navegador (mejor en vista de celular).
+
 ### App nativa (alternativa)
 
 `apps/driver` es una app Expo con ubicación en segundo plano real (pantalla

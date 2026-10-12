@@ -8,7 +8,8 @@
     "test": "pnpm --filter @despacho/db exec env DB_TEST=1 tsx src/reset.ts > /dev/null && tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
     "eval:parser": "tsx test/eval-parser-llm.ts",
-    "simulate": "tsx scripts/simulate.ts"
+    "simulate": "tsx scripts/simulate.ts",
+    "demo:tracking": "tsx scripts/demo-tracking.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

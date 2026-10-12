@@ -14,7 +14,8 @@
     "db:reset": "pnpm --filter @despacho/db reset",
     "db:test": "pnpm --filter @despacho/db test",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r --workspace-concurrency=1 test"
+    "test": "pnpm -r --workspace-concurrency=1 test",
+    "demo:tracking": "pnpm --filter @despacho/api demo:tracking"
   },
   "devDependencies": {
     "typescript": "^5.6.3"
