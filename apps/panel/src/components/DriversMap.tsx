@@ -47,8 +47,8 @@ export function DriversMap({ drivers, sectors, city }: { drivers: DriverRow[]; s
   };
 
   return (
-    <div className="grid h-full grid-cols-[1fr_22rem]">
-      <section className="relative min-h-0">
+    <div className="flex h-full flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <section className="relative h-[45vh] shrink-0 lg:h-auto lg:min-h-0">
         <MapView
           city={city}
           sectors={sectors}
@@ -58,18 +58,18 @@ export function DriversMap({ drivers, sectors, city }: { drivers: DriverRow[]; s
           selectedDriverId={selected}
           onSelectDriver={(id) => setSelected(id)}
         />
-        <div className="absolute left-3 top-3 flex gap-3 rounded-md bg-card/95 px-3 py-2 text-xs shadow">
+        <div className="absolute left-3 right-14 top-3 flex flex-wrap gap-x-3 gap-y-1 rounded-md bg-card/95 px-3 py-2 text-xs shadow sm:right-auto">
           {(['available', 'busy'] as const).map((s) => (
             <span key={s} className="flex items-center gap-1.5">
               <span className={cn('h-2.5 w-2.5 rounded-full', DRIVER_DOT[s])} />
               {DRIVER_STATUS_LABEL[s]}
             </span>
           ))}
-          <span className="text-muted-foreground">Pin = en vivo · Burbuja = por sector · ⚠ = desactualizado</span>
+          <span className="hidden text-muted-foreground sm:inline">Pin = en vivo · Burbuja = por sector · ⚠ = desactualizado</span>
         </div>
       </section>
 
-      <aside className="flex min-h-0 flex-col border-l border-border bg-card">
+      <aside className="flex min-h-0 flex-1 flex-col border-t border-border bg-card lg:border-l lg:border-t-0">
         <div className="space-y-2 border-b border-border p-3">
           <div className="flex gap-1">
             {(['all', ...DRIVER_STATUSES] as const).map((s) => (

@@ -3,6 +3,8 @@
 import { DRIVER_STATUS_LABEL, type DriverRow, type RequestRow, SERVICE_LABEL, VEHICLE_ICON, type Zone } from '@despacho/shared';
 import type { Map as MlMap, Marker } from 'maplibre-gl';
 import { useEffect, useRef, useState } from 'react';
+import { type MapProblem as Problem, watchMap, webglAvailable } from '@/lib/mapHealth';
+import { MapProblem } from './MapProblem';
 
 const STYLE_URL = process.env.NEXT_PUBLIC_MAP_STYLE_URL || 'https://tiles.openfreemap.org/styles/liberty';
 
@@ -85,12 +87,18 @@ export function MapView({
   const markers = useRef<Marker[]>([]);
   const lib = useRef<typeof import('maplibre-gl') | null>(null);
   const [ready, setReady] = useState(false);
+  const [problem, setProblem] = useState<Problem | null>(null);
   const clickRef = useRef(onMapClick);
   clickRef.current = onMapClick;
 
   // Crear el mapa una vez (maplibre solo existe en el navegador).
   useEffect(() => {
     let cancelled = false;
+    let unwatch = () => {};
+    if (!webglAvailable()) {
+      setProblem('webgl');
+      return;
+    }
     void import('maplibre-gl').then((ml) => {
       if (cancelled || !container.current) return;
       lib.current = ml;
@@ -112,10 +120,20 @@ export function MapView({
         m.addLayer({ id: 'draft-pts', type: 'circle', source: 'draft', paint: { 'circle-radius': 4, 'circle-color': '#ea580c' } });
         setReady(true);
       });
+      unwatch = watchMap(m, (p) => setProblem((cur) => cur ?? p));
+      // Reajustar al cambiar el tamaño del contenedor (pestañas, paneles, giro del celular).
+      const ro = new ResizeObserver(() => m.resize());
+      ro.observe(container.current);
+      const prevUnwatch = unwatch;
+      unwatch = () => {
+        prevUnwatch();
+        ro.disconnect();
+      };
       map.current = m;
     });
     return () => {
       cancelled = true;
+      unwatch();
       map.current?.remove();
       map.current = null;
     };
@@ -219,5 +237,14 @@ export function MapView({
     });
   }, [ready, drivers, requests, selectedRequestId, selectedDriverId, onSelectDriver, onSelectRequest]);
 
-  return <div ref={container} className={className ?? 'h-full w-full'} />;
+  // El envoltorio va en posición absoluta sobre su sección (que debe ser
+  // `relative`): la altura no depende de cómo cada navegador resuelve los % en
+  // flexbox (Firefox es más estricto que Chrome). El contenedor del mapa no
+  // puede ser el absoluto: maplibre le pone .maplibregl-map { position: relative }.
+  return (
+    <div className={className ?? 'absolute inset-0'}>
+      <div ref={container} className="h-full w-full" />
+      {problem && <MapProblem problem={problem} />}
+    </div>
+  );
 }

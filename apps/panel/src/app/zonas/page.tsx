@@ -118,8 +118,8 @@ export default function ZonesPage() {
 
   return (
     <AppShell>
-      <div className="grid h-full grid-cols-[24rem_1fr]">
-        <aside className="min-h-0 space-y-6 overflow-y-auto border-r border-border bg-card p-4">
+      <div className="h-full overflow-y-auto lg:grid lg:grid-cols-[24rem_minmax(0,1fr)] lg:overflow-hidden">
+        <aside className="space-y-6 border-b border-border bg-card p-4 lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r">
           <section>
             <div className="mb-2 flex items-center justify-between">
               <h2 className="text-sm font-semibold">Sectores de {city?.name}</h2>
@@ -232,7 +232,7 @@ export default function ZonesPage() {
             </section>
           )}
         </aside>
-        <section className={cn('relative min-h-0', mode && 'cursor-crosshair')}>
+        <section className={cn('relative h-[60vh] lg:h-auto lg:min-h-0', mode && 'cursor-crosshair')}>
           <MapView
             city={city}
             sectors={sectors}

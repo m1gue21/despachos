@@ -8,7 +8,7 @@ import { MapView } from '@/components/MapView';
 import { NewRequestDialog } from '@/components/NewRequestDialog';
 import { RequestDetail } from '@/components/RequestDetail';
 import { RequestList } from '@/components/RequestList';
-import { Button, Kbd } from '@/components/ui';
+import { Button, Kbd, cn } from '@/components/ui';
 import { useRealtimeEvent } from '@/lib/realtime';
 import { useSession } from '@/lib/session';
 import { beep } from '@/lib/sound';
@@ -21,6 +21,7 @@ export default function BoardPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [highlightDriver, setHighlightDriver] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
+  const [tab, setTab] = useState<'list' | 'map' | 'drivers'>('list');
 
   const requests = useApi<RequestRow[]>(cityId ? `/requests?city=${cityId}` : null, {
     tables: ['requests'],
@@ -63,31 +64,68 @@ export default function BoardPage() {
 
   const selectDriver = useCallback((id: string) => setHighlightDriver(id), []);
 
+  const openCount = (requests.data ?? []).filter((r) => r.status === 'created' || r.status === 'offered').length;
+  const select = (id: string | null) => {
+    setSelected(id);
+    if (id) setTab('list');
+  };
+
   return (
     <AppShell
       actions={
-        <Button size="sm" onClick={() => setNewOpen(true)} disabled={!cityId}>
-          Nueva solicitud <Kbd>N</Kbd>
+        <Button size="sm" onClick={() => setNewOpen(true)} disabled={!cityId} className="whitespace-nowrap">
+          <span className="sm:hidden">+ Nueva</span>
+          <span className="hidden sm:inline">Nueva solicitud</span>
+          <span className="hidden md:inline">
+            <Kbd>N</Kbd>
+          </span>
         </Button>
       }
     >
-      <div className="grid h-full grid-cols-[22rem_1fr_20rem]">
-        <aside className="min-h-0 border-r border-border bg-card">
-          <RequestList requests={requests.data ?? []} selectedId={selected} onSelect={setSelected} />
+      {/* xl+: tres columnas, el detalle reemplaza a la lista (el mapa nunca queda tapado).
+          Menos de xl: pestañas, una vista a la vez. */}
+      <div className="flex h-full flex-col xl:grid xl:grid-cols-[21rem_minmax(0,1fr)_19rem] 2xl:grid-cols-[24rem_minmax(0,1fr)_21rem]">
+        <div className="flex shrink-0 border-b border-border bg-card xl:hidden" role="tablist">
+          {(
+            [
+              ['list', selected ? 'Detalle' : `Solicitudes${openCount ? ` (${openCount})` : ''}`],
+              ['map', 'Mapa'],
+              ['drivers', 'Conductores'],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              role="tab"
+              aria-selected={tab === key}
+              onClick={() => setTab(key)}
+              className={cn(
+                'flex-1 border-b-2 px-2 py-2.5 text-sm font-medium',
+                tab === key ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground',
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <aside className={cn('min-h-0 flex-1 bg-card xl:block xl:border-r xl:border-border', tab !== 'list' && 'hidden')}>
+          {selected ? (
+            <RequestDetail key={selected} id={selected} drivers={drivers.data ?? []} onClose={() => setSelected(null)} />
+          ) : (
+            <RequestList requests={requests.data ?? []} selectedId={selected} onSelect={select} />
+          )}
         </aside>
-        <section className="relative min-h-0">
+        <section className={cn('relative min-h-0 flex-1 xl:block', tab !== 'map' && 'hidden')}>
           <MapView
             city={city}
             sectors={sectors}
             drivers={drivers.data ?? []}
             requests={requests.data ?? []}
             selectedRequestId={selected}
-            onSelectRequest={setSelected}
+            onSelectRequest={select}
             onSelectDriver={selectDriver}
           />
-          {selected && <RequestDetail key={selected} id={selected} drivers={drivers.data ?? []} onClose={() => setSelected(null)} />}
         </section>
-        <aside className="min-h-0 border-l border-border bg-card">
+        <aside className={cn('min-h-0 flex-1 bg-card xl:block xl:border-l xl:border-border', tab !== 'drivers' && 'hidden')}>
           <DriverPanel drivers={drivers.data ?? []} sectors={sectors} highlightId={highlightDriver} onChanged={drivers.reload} />
         </aside>
       </div>
@@ -98,7 +136,7 @@ export default function BoardPage() {
           cityId={cityId}
           sectors={sectors}
           groups={groups.data ?? []}
-          onCreated={(r) => setSelected(r.id)}
+          onCreated={(r) => select(r.id)}
         />
       )}
     </AppShell>
