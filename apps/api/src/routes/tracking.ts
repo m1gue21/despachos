@@ -33,4 +33,19 @@ export default async function trackingRoutes(app: FastifyInstance) {
     if (!data) throw new HttpError(404, 'not_found', 'Este enlace de seguimiento venció o no existe');
     return data;
   });
+
+  // Público: el cliente califica con el token del enlace.
+  app.post('/track/:token/rating', async (req) => {
+    rateLimit(req.ip, 10);
+    const { token } = z.object({ token: z.string().min(1).max(64) }).parse(req.params);
+    const b = z
+      .object({
+        stars: z.number().int().min(1).max(5),
+        tags: z.array(z.string().max(40)).max(8).default([]),
+        comment: z.string().trim().max(500).nullish(),
+      })
+      .parse(req.body);
+    await withUser(null, (db) => db.query(`select submit_rating($1, $2, $3, $4)`, [token, b.stars, b.tags, b.comment ?? null]));
+    return { ok: true };
+  });
 }

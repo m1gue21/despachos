@@ -163,3 +163,42 @@ it('CORS permite los métodos que usa el panel (PATCH/PUT)', async () => {
   const allowed = res.headers.get('access-control-allow-methods') ?? '';
   for (const m of ['PATCH', 'PUT']) assert.ok(allowed.includes(m), `falta ${m} en ${allowed}`);
 });
+
+it('el cliente califica por el enlace y el admin ve el desempeño', async () => {
+  const op = await login('op.manizales@despacho.local');
+  const ana = await login('ana@despacho.local');
+  const admin = await login('admin@despacho.local');
+  const CITY = '10000000-0000-0000-0000-000000000001';
+  const ANA = '20000000-0000-0000-0000-000000000001';
+
+  const id = (await call('/requests', op, { city_zone_id: CITY, service: 'delivery', pickup_text: 'Cable' })).data.id as string;
+  await call(`/requests/${id}/transition`, op, { action: 'offer', payload: { driver_id: ANA } });
+  await call(`/requests/${id}/transition`, ana, { action: 'accept' });
+  const { token } = (await call<any>(`/requests/${id}/tracking-link`, ana, {})).data;
+
+  // Antes de completar no se puede calificar.
+  assert.equal((await call(`/track/${token}/rating`, null, { stars: 5 })).status, 409);
+
+  await call(`/requests/${id}/transition`, ana, { action: 'pick_up' });
+  await call(`/requests/${id}/transition`, ana, { action: 'complete' });
+  assert.equal((await call<any>(`/track/${token}`, null)).data.can_rate, true);
+
+  const ok = await call(`/track/${token}/rating`, null, { stars: 5, tags: ['puntual'], comment: 'Excelente' });
+  assert.equal(ok.status, 200);
+  assert.equal((await call(`/track/${token}/rating`, null, { stars: 1 })).status, 409, 'solo una vez');
+  assert.equal((await call(`/track/${token}/rating`, null, { stars: 9 })).status, 400);
+
+  // Desempeño: solo admin.
+  assert.equal((await call(`/performance?city=${CITY}`, op)).status, 403);
+  const list = await call<any[]>(`/performance?city=${CITY}&days=30`, admin);
+  assert.equal(list.status, 200);
+  const row = list.data.find((r) => r.driver_id === ANA);
+  assert.ok(row.completed >= 1);
+  assert.ok(row.ratings_count >= 1);
+
+  const detail = await call<any>(`/performance/${ANA}?city=${CITY}&days=30`, admin);
+  assert.equal(detail.status, 200);
+  assert.equal(detail.data.daily.length, 30);
+  assert.ok(detail.data.ratings.some((r: any) => r.comment === 'Excelente'));
+  assert.ok(detail.data.tags.some((t: any) => t.tag === 'puntual'));
+});

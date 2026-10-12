@@ -65,14 +65,14 @@ describe('enlaces de seguimiento', () => {
     });
   });
 
-  it('el enlace muere 30 min después de cerrar el servicio o al vencer', async () => {
+  it('el enlace muere 12 h después de cerrar el servicio o al vencer', async () => {
     await asUser(ID.opManizales, async (c) => {
       const { token } = await link(c, ID.reqPalogrande);
       await t(c, ID.reqPalogrande, 'assign', { driver_id: ID.brunoDriver });
       await t(c, ID.reqPalogrande, 'pick_up');
       await t(c, ID.reqPalogrande, 'complete');
       await c.query('reset role');
-      await c.query(`update requests set completed_at = now() - interval '31 minutes' where id = $1`, [ID.reqPalogrande]);
+      await c.query(`update requests set completed_at = now() - interval '13 hours' where id = $1`, [ID.reqPalogrande]);
       assert.equal(await track(c, token), null);
     });
     await asUser(ID.opManizales, async (c) => {

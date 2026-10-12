@@ -14,6 +14,7 @@ import driverAppRoutes from './routes/driver-app.js';
 import driverRoutes from './routes/drivers.js';
 import metricsRoutes from './routes/metrics.js';
 import parseRoutes from './routes/parse.js';
+import performanceRoutes from './routes/performance.js';
 import requestRoutes from './routes/requests.js';
 import trackingRoutes from './routes/tracking.js';
 
@@ -66,6 +67,7 @@ export async function buildServer() {
   await app.register(parseRoutes);
   await app.register(metricsRoutes);
   await app.register(trackingRoutes);
+  await app.register(performanceRoutes);
 
   return app;
 }

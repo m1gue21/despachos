@@ -3,8 +3,8 @@
 -- El operador o el conductor asignado generan un enlace con un token
 -- aleatorio. Cualquiera con el enlace ve, sin login, el estado del servicio
 -- y, mientras está en curso, la posición del mensajero. No expone datos del
--- cliente ni el teléfono del conductor. El enlace muere a las 12 h o 30 min
--- después de cerrarse el servicio, lo que pase primero.
+-- cliente ni el teléfono del conductor. El enlace muere a las 12 h de creado;
+-- la ventana tras cerrar el servicio la ajusta 010 (12 h, para calificar).
 
 create table tracking_links (
   token text primary key,
