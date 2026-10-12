@@ -3,6 +3,7 @@
 import { SERVICE_LABEL, type ServiceType, VEHICLE_ICON, VEHICLE_LABEL, type VehicleType } from '@despacho/shared';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { RatingBox } from '@/components/RatingBox';
 import { TrackingMap } from '@/components/TrackingMap';
 import { cn } from '@/components/ui';
 import { API_URL } from '@/lib/api';
@@ -16,6 +17,8 @@ interface Tracking {
   driver: { name: string; vehicle: VehicleType; plate: string | null; sector: string | null } | null;
   driver_position: { lat: number; lng: number; updated_at: string } | null;
   timeline: { created_at: string; assigned_at: string | null; picked_up_at: string | null; completed_at: string | null };
+  rating: { stars: number } | null;
+  can_rate: boolean;
   expires_at: string;
 }
 
@@ -155,6 +158,10 @@ export default function TrackingPage() {
           </div>
         )}
 
+        {data.status === 'completed' && data.driver && (
+          <RatingBox token={token} driverName={data.driver.name} canRate={data.can_rate} existing={data.rating?.stars ?? null} />
+        )}
+
         {data.status !== 'cancelled' && (
           <ol className="mt-4 space-y-3">
             {view.steps.map((s, i) => (
@@ -189,8 +196,7 @@ export default function TrackingPage() {
           )}
         </div>
         <p className="mt-4 text-[11px] text-muted-foreground">
-          {updatedAt && `Actualizado ${hhmm(new Date(updatedAt).toISOString())} · `}Enlace temporal, vence a las {hhmm(data.expires_at)} o al
-          cerrar el servicio. La línea del mapa es la distancia en línea recta, no la ruta por calles.
+          {updatedAt && `Actualizado ${hhmm(new Date(updatedAt).toISOString())} · `}Enlace temporal, vence a las {hhmm(data.expires_at)}. La línea del mapa es la distancia en línea recta, no la ruta por calles.
         </p>
       </div>
     </div>

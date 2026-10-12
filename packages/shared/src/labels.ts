@@ -72,3 +72,17 @@ export function formatWhatsappMessage(r: Pick<
   else lines.push('¿Quién lo toma? Responder al operador.');
   return lines.join('\n');
 }
+
+// Etiquetas que el cliente puede elegir al calificar (validadas en la base).
+export const RATING_TAGS: { key: string; label: string; positive: boolean }[] = [
+  { key: 'puntual', label: 'Puntual', positive: true },
+  { key: 'amable', label: 'Amable', positive: true },
+  { key: 'cuidadoso', label: 'Cuidadoso', positive: true },
+  { key: 'buena_comunicacion', label: 'Buena comunicación', positive: true },
+  { key: 'tardo', label: 'Tardó mucho', positive: false },
+  { key: 'mal_trato', label: 'Mal trato', positive: false },
+  { key: 'producto_danado', label: 'Producto dañado', positive: false },
+  { key: 'no_contesto', label: 'No contestó', positive: false },
+];
+
+export const RATING_TAG_LABEL: Record<string, string> = Object.fromEntries(RATING_TAGS.map((t) => [t.key, t.label]));

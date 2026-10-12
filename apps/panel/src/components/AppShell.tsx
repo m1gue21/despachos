@@ -12,6 +12,7 @@ const NAV = [
   { href: '/conductores', label: 'Conductores' },
   { href: '/zonas', label: 'Zonas y grupos' },
   { href: '/metricas', label: 'Métricas' },
+  { href: '/desempeno', label: 'Desempeño', adminOnly: true },
   { href: '/usuarios', label: 'Usuarios', adminOnly: true },
 ];
 

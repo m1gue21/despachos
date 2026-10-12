@@ -3,6 +3,39 @@
 Registro de lo que se decidió donde el spec era ambiguo o donde se cambió
 algo marcado como DECISIÓN. Lo más nuevo arriba.
 
+## 2026-10-11 · Calificaciones y desempeño (el spec las dejaba fuera del MVP, §2)
+
+**Pedido:** que el admin vea estadísticas individuales y un puntaje por
+conductor, y que el cliente califique desde el enlace de seguimiento.
+
+- **Calificación:** 1–5 estrellas, etiquetas de una lista cerrada (puntual,
+  amable, cuidadoso, buena comunicación, tardó, mal trato, producto dañado,
+  no contestó) y comentario opcional de hasta 500 caracteres. Una por servicio,
+  solo si se completó y tenía conductor. Va por `submit_rating(token, …)`: el
+  token del enlace es la única credencial del cliente. Límite de 10 envíos/min
+  por IP.
+- **Ventana del enlace:** pasa de 30 min a 12 h después de cerrar el servicio,
+  para que el cliente alcance a calificar. La posición del mensajero deja de
+  mostrarse al cerrar, como antes.
+- **Quién ve qué:** calificaciones, comentarios y desempeño solo el admin
+  (RLS en `driver_ratings` y chequeo en `driver_stats`). El conductor no ve
+  sus comentarios en esta versión. Abrirlo a operadores de la ciudad es
+  cambiar dos chequeos.
+- **Puntaje 0–100** (`driver_stats`):
+  - 40 % calificación, bayesiana: se suman 5 calificaciones de 4,0 para que
+    1–2 calificaciones no dominen.
+  - 25 % aceptación: aceptadas / ofrecidas.
+  - 20 % cumplimiento: completados / (completados + cancelados estando
+    asignado).
+  - 15 % rapidez: segundos entre la oferta y la aceptación; ≤ 15 s = 1, el
+    límite de la oferta = 0.
+  - Componente sin datos = 0,8. Con menos de 3 completados, "provisional".
+  - Efecto conocido: los conductores sin app no reciben ofertas, así que
+    aceptación y rapidez les cuentan neutras (0,8). Si eso se vuelve injusto
+    en la práctica, comparar por separado con app y sin app.
+- **Seed de demo:** 14 días de historial generado con semilla fija (perfiles
+  distintos por conductor) para que las métricas y el desempeño tengan datos.
+
 ## 2026-10-11 · Conductor en la web y seguimiento para el cliente (cambia §5 y §10)
 
 **Pedido:** que los mensajeros usen una web en vez de la app nativa, y que el

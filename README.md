@@ -20,6 +20,7 @@ puede seguir su pedido con un enlace temporal.
 | 3 · Mapa en tiempo real (+ simulador) | ✅ |
 | 4 · Conductor (web en `/conductor`) | ✅ · ⏳ probar en celulares reales con https |
 | Extra · Seguimiento para el cliente | ✅ enlace temporal `/seguimiento/<token>` |
+| Extra · Calificaciones y desempeño | ✅ el cliente califica en el enlace; el admin ve puntaje y estadísticas |
 | 5 · Parser y productividad | ✅ (Claude con key, reglas sin key) |
 | 6 · Métricas y entrega | ✅ métricas, retención, rate limit · guía de despliegue sin probar en la nube |
 
@@ -66,7 +67,8 @@ aparecen (salvo que se fuerce con `NEXT_PUBLIC_DEMO_LOGINS=1` o
 | `camila@`, `jhon@`, `luzmarina@`, `andres@`, `valentina@despacho.local` | conductores de demo con app |
 
 Además del seed mínimo, `db:reset` carga `packages/db/seed-demo.sql`: 12
-conductores y mensajeros más con estados variados (disponibles por sector,
+conductores y mensajeros más, 14 días de servicios cerrados con
+calificaciones, y estados variados (disponibles por sector,
 uno en vivo, una desactualizada, dos ocupados con servicio en curso, uno
 desconectado, una inactiva y dos en Villamaría). Para omitirlos:
 `pnpm db:reset -- --no-demo`. Los tests no los usan.
@@ -132,6 +134,18 @@ pnpm demo:tracking
 
 Imprime el enlace del cliente y mueve a Luz Marina de Chipre al aeropuerto
 cada 3 s. Ábrelo en el navegador (mejor en vista de celular).
+
+### Calificaciones y desempeño
+
+Cuando el servicio se completa, la página de seguimiento le pide al cliente
+de 1 a 5 estrellas, etiquetas rápidas y un comentario opcional (una vez por
+servicio; el enlace sigue abierto 12 h para eso).
+
+El admin ve **Desempeño** en el menú: ranking por puntaje (0–100) y, al elegir
+un conductor, servicios por día, aceptación, rechazos y ofertas vencidas,
+tiempos de respuesta, recogida y entrega, distribución de estrellas,
+etiquetas y comentarios. La fórmula está explicada en la misma página y en
+`DECISIONS.md`. El seed de demo trae 14 días de historial para verlo con datos.
 
 ### App nativa (alternativa)
 
