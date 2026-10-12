@@ -9,6 +9,8 @@ puede seguir su pedido con un enlace temporal.
 - Spec del MVP: [docs/SPEC_MVP_despacho_local.md](docs/SPEC_MVP_despacho_local.md)
 - Decisiones tomadas en el camino: [DECISIONS.md](DECISIONS.md)
 - Despliegue: [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md)
+- **Rama `demo-sin-backend`:** versión que corre solo en el navegador, lista
+  para Vercel. Ver [docs/DEMO.md](docs/DEMO.md).
 
 ## Estado
 

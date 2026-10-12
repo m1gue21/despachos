@@ -2,11 +2,12 @@
 
 import { DEMO_DRIVERS, DEMO_PASSWORD } from '@despacho/shared';
 import Link from 'next/link';
+import { DEMO } from '@/lib/demo';
 import { type FormEvent, useState } from 'react';
 import { api, driverClient } from '@/lib/api';
 import { Button, ErrorText, Field, Input, cn } from '../ui';
 
-const SHOW_DEMO = process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_DEMO_LOGINS === '1';
+const SHOW_DEMO = DEMO || process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_DEMO_LOGINS === '1';
 
 export function DriverLogin({ onLogged }: { onLogged: () => void }) {
   const [email, setEmail] = useState('');

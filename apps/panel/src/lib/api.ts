@@ -1,4 +1,7 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:4000';
+import { DEMO, DEMO_API_URL } from './demo';
+
+// En modo demo las llamadas a esta URL las atiende el API simulado (lib/mock).
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? (DEMO ? DEMO_API_URL : 'http://127.0.0.1:4000');
 
 export class ApiError extends Error {
   constructor(

@@ -6,6 +6,7 @@
 // la pantalla encendida. Por eso se pide Wake Lock (pantalla siempre
 // encendida) y, si deja de llegar ubicación, la página vuelve a modo zona.
 import { driverClient } from './api';
+import { DEMO } from './demo';
 
 export const HEARTBEAT_MS = 60_000; // aunque no se mueva, enviar al menos cada minuto
 export const MIN_MOVE_M = 15; // moverse menos que esto no amerita ping (spec §8)
@@ -110,7 +111,29 @@ export function isLiveRunning(): boolean {
 
 // Pide permiso (si hace falta) y arranca el seguimiento. Resuelve cuando llega
 // la primera posición o falla.
+// Demo: si el navegador no da GPS (p. ej. un computador), se simula un
+// recorrido por Manizales para poder probar el modo en vivo.
+let fakeTimer: ReturnType<typeof setInterval> | null = null;
+function startFakeGps(): { ok: true } {
+  let lat = 5.0689 + (Math.random() - 0.5) * 0.01;
+  let lng = -75.5174 + (Math.random() - 0.5) * 0.01;
+  let h = Math.random() * Math.PI * 2;
+  const step = () => {
+    h += (Math.random() - 0.5) * 0.8;
+    lat += Math.sin(h) * 0.00025;
+    lng += Math.cos(h) * 0.00025;
+    onPosition({ coords: { latitude: lat, longitude: lng, accuracy: 15 } } as GeolocationPosition);
+  };
+  live.startedAt = Date.now();
+  live.watchId = -1;
+  step();
+  fakeTimer = setInterval(step, 5000);
+  void acquireWakeLock();
+  return { ok: true };
+}
+
 export function startLive(): Promise<{ ok: true } | { ok: false; message: string }> {
+  if (DEMO && live.watchId === null && !isSecureForGeo()) return Promise.resolve(startFakeGps());
   if (!isSecureForGeo()) {
     return Promise.resolve({
       ok: false,
@@ -142,7 +165,7 @@ export function startLive(): Promise<{ ok: true } | { ok: false; message: string
         if (!settled) {
           settled = true;
           stopLive();
-          resolve({ ok: false, message });
+          resolve(DEMO ? startFakeGps() : { ok: false, message });
         }
       },
       { enableHighAccuracy: true, maximumAge: 5_000, timeout: 30_000 },
@@ -151,7 +174,9 @@ export function startLive(): Promise<{ ok: true } | { ok: false; message: string
 }
 
 export function stopLive() {
-  if (live.watchId !== null) navigator.geolocation.clearWatch(live.watchId);
+  if (fakeTimer) clearInterval(fakeTimer);
+  fakeTimer = null;
+  if (live.watchId !== null && live.watchId >= 0) navigator.geolocation.clearWatch(live.watchId);
   live.watchId = null;
   void live.wakeLock?.release().catch(() => {});
   live.wakeLock = null;

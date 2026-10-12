@@ -2,6 +2,7 @@
 
 import { DEMO_PASSWORD, DEMO_STAFF } from '@despacho/shared';
 import Link from 'next/link';
+import { DEMO } from '@/lib/demo';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { Button, ErrorText, Field, Input } from '@/components/ui';
@@ -9,7 +10,7 @@ import { useSession } from '@/lib/session';
 
 // Botones de acceso rápido con las cuentas del seed: solo en desarrollo, o si
 // se fuerza con NEXT_PUBLIC_DEMO_LOGINS=1 (p. ej. un entorno de demostración).
-const SHOW_DEMO = process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_DEMO_LOGINS === '1';
+const SHOW_DEMO = DEMO || process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_DEMO_LOGINS === '1';
 
 export default function LoginPage() {
   const { login, me } = useSession();
