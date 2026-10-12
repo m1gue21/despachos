@@ -7,7 +7,9 @@ import { HttpError } from '../errors.js';
 import { presencePatch, presenceUpdateSql } from './drivers.js';
 import { REQUEST_SELECT } from './sql.js';
 
-export const CONSENT_VERSION = '2026-10-v1';
+// v2: agrega que el cliente de un servicio asignado puede ver la ubicación
+// del mensajero por un enlace temporal mientras dura el servicio.
+export const CONSENT_VERSION = '2026-10-v2';
 
 async function myDriverId(db: Db): Promise<string> {
   const { rows } = await db.query(`select my_driver_id() as id`);

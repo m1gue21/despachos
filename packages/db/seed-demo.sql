@@ -28,7 +28,7 @@ insert into profiles (id, role, full_name, phone, consent_at, consent_version) v
   ('00000000-0000-0000-0000-0000000000d3', 'driver', 'Camila Duque',      '3110000001', null, null),
   ('00000000-0000-0000-0000-0000000000d4', 'driver', 'Jhon Ocampo',       '3110000002', null, null),
   ('00000000-0000-0000-0000-0000000000d5', 'driver', 'Luz Marina Giraldo','3110000003', null, null),
-  ('00000000-0000-0000-0000-0000000000d6', 'driver', 'Andrés Henao',      '3110000004', now(), '2026-10-v1'),
+  ('00000000-0000-0000-0000-0000000000d6', 'driver', 'Andrés Henao',      '3110000004', now(), '2026-10-v2'),
   ('00000000-0000-0000-0000-0000000000d7', 'driver', 'Valentina Cardona', '3110000005', null, null);
 
 -- ── Conductores ─────────────────────────────────────────────────────────

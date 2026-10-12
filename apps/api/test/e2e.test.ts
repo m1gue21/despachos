@@ -121,3 +121,32 @@ it('el parser responde con reglas sin API key y exige sesión de operador', asyn
   assert.equal((await call('/parse', ana, body)).status, 403);
   assert.equal((await call('/parse', null, body)).status, 401);
 });
+
+it('enlace de seguimiento: el conductor lo comparte y el cliente lo ve sin login', async () => {
+  const op = await login('op.manizales@despacho.local');
+  const ana = await login('ana@despacho.local');
+  const created = await call('/requests', op, {
+    city_zone_id: '10000000-0000-0000-0000-000000000001',
+    service: 'delivery',
+    pickup_text: 'Cable',
+    pickup_sector_id: null,
+    customer_phone: '3209998877',
+  });
+  const id = created.data.id as string;
+  await call(`/requests/${id}/transition`, op, { action: 'assign', payload: { driver_id: '20000000-0000-0000-0000-000000000001' } });
+
+  const link = await call<any>(`/requests/${id}/tracking-link`, ana, {});
+  assert.equal(link.status, 200);
+  assert.match(link.data.path, /^\/seguimiento\/[A-Za-z0-9_-]{32}$/);
+
+  const pub = await call<any>(`/track/${link.data.token}`, null);
+  assert.equal(pub.status, 200);
+  assert.equal(pub.data.status, 'assigned');
+  assert.equal(pub.data.driver.name, 'Ana');
+  assert.ok(!JSON.stringify(pub.data).includes('3209998877'));
+
+  assert.equal((await call(`/track/${'a'.repeat(32)}`, null)).status, 404);
+  // Bruno no está asignado: no puede generar enlace.
+  const bruno = await login('bruno@despacho.local');
+  assert.equal((await call(`/requests/${id}/tracking-link`, bruno, {})).status, 403);
+});

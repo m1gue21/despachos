@@ -15,9 +15,12 @@ import driverRoutes from './routes/drivers.js';
 import metricsRoutes from './routes/metrics.js';
 import parseRoutes from './routes/parse.js';
 import requestRoutes from './routes/requests.js';
+import trackingRoutes from './routes/tracking.js';
 
 export async function buildServer() {
   const app = Fastify({
+    // Detrás de un proxy (producción), req.ip debe ser la IP real del cliente.
+    trustProxy: config.production,
     logger: {
       level: process.env.LOG_LEVEL ?? 'info',
       // Nunca loguear el cuerpo ni el header de autorización.
@@ -58,6 +61,7 @@ export async function buildServer() {
   await app.register(driverAppRoutes);
   await app.register(parseRoutes);
   await app.register(metricsRoutes);
+  await app.register(trackingRoutes);
 
   return app;
 }
