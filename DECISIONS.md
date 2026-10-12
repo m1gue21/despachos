@@ -3,6 +3,49 @@
 Registro de lo que se decidió donde el spec era ambiguo o donde se cambió
 algo marcado como DECISIÓN. Lo más nuevo arriba.
 
+## 2026-10-11 · Conductor en la web y seguimiento para el cliente (cambia §5 y §10)
+
+**Pedido:** que los mensajeros usen una web en vez de la app nativa, y que el
+cliente reciba un enlace temporal con la ruta y el estado de su mensajero.
+
+**Qué se hizo**
+- La web del conductor vive en el mismo Next.js del panel (`/conductor`): un
+  solo despliegue web. Sesión propia (`despacho.driver.token`) para no
+  mezclarse con la del operador en el mismo navegador. Instalable (manifest).
+- La app Expo (`apps/driver`) se conserva como alternativa, sin mantenimiento
+  activo.
+
+**Lo que se pierde frente a la app nativa (aceptado)**
+- Sin ubicación con pantalla bloqueada ni en segundo plano: el navegador la
+  corta. Mitigación: Wake Lock, aviso al volver, y vuelta automática a modo
+  zona si no llega GPS en 3 min. El hito de riesgo del spec (§10) aplica igual:
+  si en la práctica se corta mucho, el modo zona es el principal.
+- GPS solo en https (o localhost).
+- Sin push con la página cerrada (Web Push queda pendiente; en iOS además
+  requiere instalarla en la pantalla de inicio).
+
+**Seguimiento**
+- `tracking_links` con token aleatorio de 24 bytes (base64url). Lo generan el
+  operador de la ciudad o el conductor asignado; se reutiliza mientras esté
+  vigente. Vence a las 12 h o 30 min después de cerrar el servicio.
+- `public_tracking(token)`: estado, lugares (posición o centro del sector),
+  primer nombre, vehículo y placa del mensajero, y su posición solo si el
+  servicio está en curso, en modo en vivo y al día. Nunca datos del cliente
+  ni teléfono del conductor. Página pública con `noindex` y consulta cada 10 s
+  (sin WebSocket para no exponer el canal autenticado). Límite de 60
+  consultas/min por IP.
+- "Ruta" = línea recta del mensajero a su próximo punto con un estimado a
+  20 km/h. Ruta por calles real queda pendiente (OSRM propio o un proveedor de
+  direcciones).
+- El consentimiento pasa a la versión `2026-10-v2` porque ahora el cliente de
+  un servicio puede ver la ubicación del mensajero: todos deben aceptarlo de
+  nuevo para activar el modo en vivo.
+
+**Corrección encontrada en el camino:** `@fastify/cors` solo permitía
+GET/HEAD/POST; los PATCH del navegador (cambiar estado o sector, editar
+conductores y zonas) fallaban. Ahora se permiten PATCH/PUT/DELETE y hay una
+prueba que lo cubre.
+
 ## 2026-10-11 · Hitos 1 a 6
 
 **Máquina de estados**

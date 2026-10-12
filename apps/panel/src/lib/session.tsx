@@ -3,7 +3,7 @@
 import type { DriverRow, Profile, Zone } from '@despacho/shared';
 import { useRouter } from 'next/navigation';
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { api, getToken, onUnauthorized, setToken } from './api';
+import { api, driverClient, getToken, onUnauthorized, setToken } from './api';
 
 interface Me {
   profile: Profile;
@@ -17,7 +17,8 @@ interface SessionValue {
   cityId: string | null;
   city: Zone | null;
   setCityId: (id: string) => void;
-  login: (email: string, password: string) => Promise<void>;
+  // Devuelve el rol: los conductores van a /conductor con su propia sesión.
+  login: (email: string, password: string) => Promise<'staff' | 'driver'>;
   logout: () => void;
 }
 
@@ -77,9 +78,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       },
       login: async (email, password) => {
         const res = await api<Me & { token: string }>('/auth/login', { body: { email, password } });
-        if (res.profile.role === 'driver') throw new Error('Los conductores usan la app móvil');
+        if (res.profile.role === 'driver') {
+          driverClient.setToken(res.token);
+          return 'driver';
+        }
         setToken(res.token);
         applyMe(res);
+        return 'staff';
       },
       logout,
     }),

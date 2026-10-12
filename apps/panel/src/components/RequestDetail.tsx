@@ -43,6 +43,24 @@ export function RequestDetail({ id, drivers, onClose }: { id: string; drivers: D
     }
   };
 
+  // Enlace temporal para que el cliente vea el estado y al mensajero.
+  const tracking = async (via: 'copy' | 'whatsapp') => {
+    if (!r) return;
+    try {
+      const { path } = await api<{ path: string }>(`/requests/${id}/tracking-link`, { body: {} });
+      const url = `${window.location.origin}${path}`;
+      if (via === 'whatsapp' && r.customer_phone) {
+        const text = `Hola${r.customer_name ? ` ${r.customer_name}` : ''}, puedes seguir tu ${SERVICE_LABEL[r.service].toLowerCase()} aquí: ${url}`;
+        window.open(`https://wa.me/57${r.customer_phone}?text=${encodeURIComponent(text)}`, '_blank');
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast('Enlace de seguimiento copiado', 'info');
+      }
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'No se pudo crear el enlace', 'error');
+    }
+  };
+
   const copy = async () => {
     if (!r) return;
     try {
@@ -186,6 +204,16 @@ export function RequestDetail({ id, drivers, onClose }: { id: string; drivers: D
             <Button size="sm" variant="outline" onClick={copy}>
               Copiar mensaje para el grupo
             </Button>
+            {!terminal && (
+              <Button size="sm" variant="outline" onClick={() => tracking('copy')} title="Enlace temporal para el cliente">
+                Copiar enlace de seguimiento
+              </Button>
+            )}
+            {!terminal && r.customer_phone && (
+              <Button size="sm" variant="outline" onClick={() => tracking('whatsapp')}>
+                Enviar seguimiento por WhatsApp
+              </Button>
+            )}
             {!terminal && (
               <Button
                 size="sm"

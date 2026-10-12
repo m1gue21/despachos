@@ -3,7 +3,8 @@
 Plataforma de despacho para domiciliarios y conductores (Manizales y, luego,
 otras ciudades de Caldas). El operador registra las solicitudes que llegan por
 WhatsApp, ve a los conductores en un mapa en vivo y asigna; el conductor
-recibe y gestiona los servicios en una app Android.
+recibe y gestiona los servicios desde una web para celular, y el cliente
+puede seguir su pedido con un enlace temporal.
 
 - Spec del MVP: [docs/SPEC_MVP_despacho_local.md](docs/SPEC_MVP_despacho_local.md)
 - Decisiones tomadas en el camino: [DECISIONS.md](DECISIONS.md)
@@ -17,7 +18,8 @@ recibe y gestiona los servicios en una app Android.
 | 1 · Núcleo de solicitudes | ✅ |
 | 2 · Conductores y presencia por zonas | ✅ |
 | 3 · Mapa en tiempo real (+ simulador) | ✅ |
-| 4 · App del conductor | ✅ código · ⏳ validar en celulares reales |
+| 4 · Conductor (web en `/conductor`) | ✅ · ⏳ probar en celulares reales con https |
+| Extra · Seguimiento para el cliente | ✅ enlace temporal `/seguimiento/<token>` |
 | 5 · Parser y productividad | ✅ (Claude con key, reglas sin key) |
 | 6 · Métricas y entrega | ✅ métricas, retención, rate limit · guía de despliegue sin probar en la nube |
 
@@ -26,8 +28,9 @@ recibe y gestiona los servicios en una app Android.
 ```
 apps/
   api/        API Node (Fastify): auth JWT, RLS por petición, WebSocket, parser, push
-  panel/      Panel web del operador (Next.js + Tailwind + MapLibre)
-  driver/     App del conductor (Expo, Android primero)
+  panel/      Next.js: panel del operador (/), web del conductor (/conductor)
+              y seguimiento público del cliente (/seguimiento/<token>)
+  driver/     App nativa Expo (alternativa, no es el canal principal; ver abajo)
 packages/
   shared/     enums, tipos de API, schemas Zod y textos en español
   db/         migraciones SQL, seed, reset y tests de RLS/máquina de estados
@@ -38,7 +41,6 @@ docker-compose.yml   Postgres 16 + PostGIS
 
 - Node 20+ y pnpm 9 (`npm i -g pnpm@9`)
 - Docker Desktop corriendo
-- Para la app: un celular Android con la app de desarrollo instalada (ver abajo)
 
 ## Levantar todo en local
 
@@ -85,22 +87,48 @@ falla. Para medir el parser con IA contra los 16 ejemplos (gasta tokens):
 pnpm --filter @despacho/api eval:parser
 ```
 
-### App del conductor
+### Web del conductor
 
-La ubicación en segundo plano necesita un **development build** (no Expo Go).
+Los conductores entran en **http://localhost:3000/conductor** (o desde
+`/login` con su cuenta: se les redirige solos). Es una web para celular que se
+puede "Agregar a la pantalla principal". Tiene estado, sector con "Sigo aquí",
+ubicación en vivo, ofertas con temporizador, sonido y vibración, servicio
+activo con Maps/Waze/llamar/WhatsApp, "Enviar seguimiento al cliente" e
+historial del día.
 
-```bash
-cd apps/driver
-npx eas-cli@latest build --profile development --platform android   # una vez: genera el APK
-pnpm dev:driver                                                       # sirve el bundle
-```
+**Límites de la web (importante):**
 
-Instala el APK en el celular, ábrelo y conéctalo al bundle (misma red Wi-Fi).
-La app encuentra sola el API en `http://<IP-de-tu-computador>:4000`; si no,
-define `EXPO_PUBLIC_API_URL`. Entra con `ana@despacho.local` / `dev12345`.
+- La ubicación en vivo solo se envía **con la página abierta y la pantalla
+  encendida**. La página pide mantener la pantalla encendida (Wake Lock) y, si
+  deja de recibir GPS 3 minutos, vuelve sola a modo zona y avisa. Con pantalla
+  bloqueada o en otra app (incluido Maps/Waze), la ubicación se pausa.
+- El navegador solo da GPS en **https** (o `localhost`). Para probar en un
+  celular de la red local:
+  - Lo más simple: desplegar con https (ver `docs/DESPLIEGUE.md`), o
+  - En Android/Chrome, solo para pruebas: abrir
+    `chrome://flags/#unsafely-treat-insecure-origin-as-secure`, agregar
+    `http://<IP-del-computador>:3000` y reiniciar Chrome. El panel debe llamar
+    al API por la IP: `NEXT_PUBLIC_API_URL=http://<IP>:4000` en `.env`.
+- Los avisos de ofertas suenan y vibran con la página abierta; con la pestaña
+  en segundo plano se muestra una notificación del navegador si el conductor
+  la permitió. Sin push con la página cerrada (pendiente: Web Push).
 
-Para probar solo pantallas y flujo (sin ubicación en segundo plano ni push),
-también sirve Expo Go: `pnpm dev:driver` y escanear el QR.
+### Seguimiento para el cliente
+
+Desde el detalle de una solicitud (panel) o desde el servicio activo (web del
+conductor) se genera un enlace temporal `/seguimiento/<token>` y se envía por
+WhatsApp al cliente. Sin login, el cliente ve el estado por pasos, el primer
+nombre y vehículo del mensajero y, mientras el servicio está en curso y el
+mensajero comparte en vivo, su posición en el mapa con una línea recta hasta
+el próximo punto y un tiempo estimado. No muestra datos del cliente ni el
+teléfono del mensajero. Vence a las 12 h o 30 min después de cerrar el servicio.
+
+### App nativa (alternativa)
+
+`apps/driver` es una app Expo con ubicación en segundo plano real (pantalla
+bloqueada). No es el canal principal; queda por si la web no alcanza.
+Requiere un development build con EAS (`npx eas-cli@latest build --profile
+development --platform android`) y `pnpm dev:driver`.
 
 ## Primer admin en un entorno nuevo
 

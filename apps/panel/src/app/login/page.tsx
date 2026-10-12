@@ -29,8 +29,8 @@ export default function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      await login(email, password);
-      router.replace('/');
+      const role = await login(email, password);
+      router.replace(role === 'driver' ? '/conductor' : '/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo entrar');
     } finally {
@@ -43,7 +43,7 @@ export default function LoginPage() {
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-lg border border-border bg-card p-6 shadow-sm">
         <div>
           <h1 className="text-lg font-semibold">Despacho</h1>
-          <p className="text-sm text-muted-foreground">Entra con tu cuenta de operador.</p>
+          <p className="text-sm text-muted-foreground">Entra con tu cuenta de operador o de conductor.</p>
         </div>
         <Field label="Correo">
           <Input type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />

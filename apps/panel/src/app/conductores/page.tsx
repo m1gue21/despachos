@@ -182,7 +182,7 @@ export default function DriversPage() {
                                 setInviteEmail('');
                               }}
                             >
-                              Invitar a la app
+                              Dar acceso
                             </Button>
                           )}
                         </td>
@@ -255,7 +255,7 @@ export default function DriversPage() {
       <Dialog open={inviting !== null} onClose={() => setInviting(null)} title={`Invitar a ${inviting?.display_name ?? ''}`}>
         <form onSubmit={invite} className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Se crea una cuenta para la app con una contraseña temporal. Entrégasela al conductor por un canal privado.
+            Se crea una cuenta con una contraseña temporal para la web del conductor (esta misma dirección, en /conductor). Entrégasela por un canal privado.
           </p>
           <Field label="Correo del conductor">
             <Input type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required autoFocus />
@@ -268,7 +268,7 @@ export default function DriversPage() {
 
       <Dialog open={credentials !== null} onClose={() => setCredentials(null)} title="Acceso creado">
         <div className="space-y-2 text-sm">
-          <p>Comparte estos datos con el conductor. La contraseña no se vuelve a mostrar.</p>
+          <p>Comparte estos datos con el conductor. Entra en la dirección /conductor de este sitio. La contraseña no se vuelve a mostrar.</p>
           <p className="rounded-md bg-muted p-3 font-mono">
             {credentials?.email}
             <br />

@@ -9,8 +9,8 @@
 |---|---|---|
 | Base de datos | Postgres 16 + PostGIS | VPS con Docker (este `docker-compose.yml`) o un Postgres administrado con PostGIS |
 | API | Node 20+ (`apps/api`), proceso largo con WebSocket | VPS (Docker/systemd), Fly.io, Railway, Render |
-| Panel | Next.js (`apps/panel`), sitio estático + cliente | Vercel, o el mismo VPS con `next start` |
-| App | Expo / EAS Build | APK interno o Play Store |
+| Web (panel, conductor y seguimiento) | Next.js (`apps/panel`) | Vercel, o el mismo VPS con `next start` |
+| App nativa (opcional) | Expo / EAS Build | Solo si se necesita ubicación con pantalla bloqueada |
 
 El API necesita un proceso que se mantenga vivo (WebSocket, `LISTEN`, jobs), así
 que no sirve una plataforma solo serverless para esa pieza.
@@ -54,7 +54,7 @@ NEXT_PUBLIC_API_URL=https://api.tu-dominio.com pnpm --filter @despacho/panel bui
 En Vercel: raíz del proyecto `apps/panel`, comando de instalación
 `pnpm install` desde la raíz del monorepo, y la variable `NEXT_PUBLIC_API_URL`.
 
-## 4. App del conductor
+## 4. App nativa del conductor (opcional)
 
 1. Cuenta de Expo y `npx eas-cli@latest login`.
 2. En `apps/driver/eas.json`, pon `EXPO_PUBLIC_API_URL` con la URL pública del API
@@ -66,9 +66,14 @@ En Vercel: raíz del proyecto `apps/panel`, comando de instalación
    repartir; `production` para Play Store (requiere justificar la ubicación en
    segundo plano en la revisión de Google).
 
+La web del conductor necesita **https** para el GPS: el panel debe servirse
+con certificado válido (Vercel lo da; en un VPS, Caddy lo obtiene solo). Los
+conductores entran en `https://<dominio>/conductor`.
+
 ## 5. Antes de abrir
 
 - Redactar la política de tratamiento de datos (`/privacidad` en el panel).
-- Validar la ubicación en segundo plano en 3 celulares de gama media/baja
-  durante una jornada (spec §10). Si falla, dejar solo el modo zona.
+- Probar la web del conductor en 3 celulares de gama media/baja durante una
+  jornada (spec §10): cuánto se corta la ubicación en vivo en la práctica. Si
+  se corta mucho, trabajar por zona o pasar a la app nativa.
 - Cambiar o borrar los usuarios del seed si se usó en algún entorno compartido.

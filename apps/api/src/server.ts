@@ -30,7 +30,11 @@ export async function buildServer() {
 
   app.setErrorHandler(errorHandler);
   // La app móvil no manda Origin; el panel sí.
-  await app.register(cors, { origin: config.production ? config.corsOrigins : true });
+  await app.register(cors, {
+    origin: config.production ? config.corsOrigins : true,
+    // Por defecto @fastify/cors solo permite GET/HEAD/POST; el panel usa PATCH y PUT.
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'PUT', 'DELETE'],
+  });
   await app.register(websocket);
 
   app.get('/health', async () => {

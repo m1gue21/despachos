@@ -15,12 +15,13 @@ export function cn(...c: (string | false | null | undefined)[]) {
   return c.filter(Boolean).join(' ');
 }
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'ok';
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
   secondary: 'bg-muted text-foreground hover:bg-border',
   ghost: 'hover:bg-muted',
   danger: 'bg-danger text-white hover:bg-danger/90',
+  ok: 'bg-ok text-white hover:bg-ok/90',
   outline: 'border border-border bg-card hover:bg-muted',
 };
 

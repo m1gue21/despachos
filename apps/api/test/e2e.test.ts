@@ -150,3 +150,16 @@ it('enlace de seguimiento: el conductor lo comparte y el cliente lo ve sin login
   const bruno = await login('bruno@despacho.local');
   assert.equal((await call(`/requests/${id}/tracking-link`, bruno, {})).status, 403);
 });
+
+it('CORS permite los métodos que usa el panel (PATCH/PUT)', async () => {
+  const res = await fetch(`${base}/drivers/x/presence`, {
+    method: 'OPTIONS',
+    headers: {
+      origin: 'http://localhost:3000',
+      'access-control-request-method': 'PATCH',
+      'access-control-request-headers': 'authorization,content-type',
+    },
+  });
+  const allowed = res.headers.get('access-control-allow-methods') ?? '';
+  for (const m of ['PATCH', 'PUT']) assert.ok(allowed.includes(m), `falta ${m} en ${allowed}`);
+});
