@@ -118,7 +118,7 @@ export default function TrackingPage() {
   const closed = data.status === 'completed' || data.status === 'cancelled';
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col lg:flex-row-reverse">
       <div className="relative min-h-[45%] flex-1">
         <TrackingMap
           pickup={view.pickup}
@@ -129,7 +129,7 @@ export default function TrackingPage() {
         />
         {error && <div className="absolute left-3 right-3 top-3 rounded-md bg-orange-50 px-3 py-2 text-sm text-warn shadow">{error}</div>}
       </div>
-      <div className="max-h-[55%] overflow-y-auto rounded-t-2xl border-t border-border bg-card p-5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+      <div className="max-h-[55%] overflow-y-auto rounded-t-2xl border-t border-border bg-card p-5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] lg:max-h-none lg:w-[26rem] lg:shrink-0 lg:rounded-none lg:border-r lg:border-t-0 lg:shadow-none">
         <p className="text-xs font-semibold uppercase text-muted-foreground">
           {SERVICE_LABEL[data.service]} · {data.city}
         </p>

@@ -36,11 +36,11 @@ function Bars({ data, label, value, max }: { data: { key: string; v: number }[];
         <Empty>Sin datos todavía.</Empty>
       ) : (
         <div className="flex h-40 items-end gap-1">
-          {data.map((d) => (
+          {data.map((d, i) => (
             <div key={d.key} className="group flex h-full flex-1 flex-col items-center justify-end gap-1" title={`${d.key}: ${d.v} ${value}`}>
               <span className="text-[10px] tabular-nums text-muted-foreground opacity-0 group-hover:opacity-100">{d.v}</span>
               <div className="w-full rounded-t bg-primary/80" style={{ height: max ? Math.max(d.v ? 2 : 0, Math.round((d.v / max) * 120)) : 0 }} />
-              <span className="text-[10px] text-muted-foreground">{d.key}</span>
+              <span className={`text-[10px] text-muted-foreground ${data.length > 12 && i % 3 !== 0 ? "invisible sm:visible" : ""}`}>{d.key}</span>
             </div>
           ))}
         </div>
@@ -62,8 +62,8 @@ export default function MetricsPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-5xl space-y-4 overflow-y-auto p-6" style={{ height: '100%' }}>
-        <div className="flex items-center justify-between">
+      <div className="mx-auto max-w-5xl space-y-4 overflow-y-auto p-3 sm:p-6" style={{ height: '100%' }}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h1 className="text-lg font-semibold">Métricas</h1>
           <Select className="w-40" value={days} onChange={(e) => setDays(Number(e.target.value))}>
             <option value={1}>Hoy</option>
@@ -91,7 +91,7 @@ export default function MetricsPage() {
             </div>
             <div className="rounded-lg border border-border bg-card p-4">
               <p className="mb-2 text-sm font-medium">Por sector de recogida</p>
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto"><table className="w-full min-w-[28rem] text-sm">
                 <thead className="text-left text-xs text-muted-foreground">
                   <tr>
                     <th className="py-1">Sector</th>
@@ -110,7 +110,7 @@ export default function MetricsPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
             <p className="text-xs text-muted-foreground">
               Ofertas: {m.rejections.offered} · rechazadas {m.rejections.rejected} · vencidas {m.rejections.timeouts}

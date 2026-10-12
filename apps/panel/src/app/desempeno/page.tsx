@@ -98,8 +98,8 @@ export default function PerformancePage() {
   return (
     <AppShell>
       <div className="relative h-full overflow-y-auto">
-        <div className="mx-auto max-w-6xl space-y-4 p-6">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto max-w-6xl space-y-4 p-3 sm:p-6">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-lg font-semibold">Desempeño de conductores</h1>
             <Select className="ml-auto w-44" value={days} onChange={(e) => setDays(Number(e.target.value))}>
               <option value={7}>Últimos 7 días</option>
@@ -131,7 +131,7 @@ export default function PerformancePage() {
           </details>
 
           <div className="overflow-x-auto rounded-lg border border-border bg-card">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[52rem] text-sm">
               <thead className="bg-muted text-left text-xs text-muted-foreground">
                 <tr>
                   <th className="px-3 py-2">#</th>
@@ -207,7 +207,7 @@ function DriverDetail({ id, cityId, days, onClose }: { id: string; cityId: strin
   const maxStars = Math.max(1, ...(data?.distribution ?? []).map((d) => d.n));
 
   return (
-    <div className="fixed inset-y-0 right-0 z-30 mt-12 w-[30rem] max-w-full overflow-y-auto border-l border-border bg-card p-5 shadow-xl">
+    <div className="fixed bottom-0 right-0 top-12 z-30 w-full overflow-y-auto border-l border-border bg-card p-4 shadow-xl sm:w-[30rem] sm:p-5">
       <button className="absolute right-4 top-4 text-muted-foreground hover:text-foreground" onClick={onClose} aria-label="Cerrar">
         ✕
       </button>

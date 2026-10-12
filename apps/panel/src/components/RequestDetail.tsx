@@ -298,11 +298,13 @@ export function RequestDetail({ id, drivers, onClose }: { id: string; drivers: D
 
 function Panel({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="absolute inset-y-0 right-0 z-20 w-[26rem] max-w-full overflow-y-auto border-l border-border bg-card p-4 shadow-xl">
-      <button className="absolute right-3 top-3 text-muted-foreground hover:text-foreground" onClick={onClose} aria-label="Cerrar detalle">
-        ✕
-      </button>
-      {children}
+    <div className="h-full overflow-y-auto bg-card">
+      <div className="sticky top-0 z-10 flex items-center border-b border-border bg-card/95 px-3 py-2 backdrop-blur">
+        <button className="text-sm text-primary hover:underline" onClick={onClose}>
+          ← Solicitudes
+        </button>
+      </div>
+      <div className="p-4">{children}</div>
     </div>
   );
 }

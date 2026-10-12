@@ -119,7 +119,7 @@ export default function DriversPage() {
   return (
     <AppShell>
       <div className="flex h-full flex-col">
-        <div className="flex shrink-0 items-center gap-4 border-b border-border bg-card px-6 py-3">
+        <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-6">
           <h1 className="text-lg font-semibold">Conductores</h1>
           <div className="flex rounded-md border border-border p-0.5" role="tablist" aria-label="Vista">
             {(['lista', 'mapa'] as const).map((v) => (
@@ -146,8 +146,9 @@ export default function DriversPage() {
             <DriversMap drivers={drivers.data ?? []} sectors={sectors} city={city} />
           ) : (
             <div className="h-full overflow-y-auto">
-              <div className="mx-auto max-w-5xl p-6">
-                <table className="w-full overflow-hidden rounded-lg border border-border bg-card text-sm">
+              <div className="mx-auto max-w-5xl p-3 sm:p-6">
+                <div className="overflow-x-auto rounded-lg border border-border bg-card">
+                <table className="w-full min-w-[44rem] text-sm [&_td]:whitespace-nowrap">
                   <thead className="bg-muted text-left text-xs text-muted-foreground">
                     <tr>
                       <th className="px-3 py-2">Nombre</th>
@@ -195,6 +196,7 @@ export default function DriversPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
           )}

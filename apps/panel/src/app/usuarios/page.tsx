@@ -40,7 +40,7 @@ export default function UsersPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto grid max-w-5xl gap-6 overflow-y-auto p-6 md:grid-cols-[1fr_20rem]" style={{ height: '100%' }}>
+      <div className="mx-auto grid max-w-5xl content-start gap-6 overflow-y-auto p-3 sm:p-6 md:grid-cols-[1fr_20rem]" style={{ height: '100%' }}>
         <div>
           <h1 className="mb-3 text-lg font-semibold">Usuarios del panel</h1>
           {staff.error && <ErrorText>{staff.error}</ErrorText>}
