@@ -1,0 +1,28 @@
+---
+---
+
+<section class="bg-cafetal-900 text-neblina">
+  <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
+    <h2 class="font-display max-w-3xl text-3xl font-bold leading-tight sm:text-4xl">
+      Hoy los domicilios de Manizales se mueven en grupos de WhatsApp. <span class="text-carriel-300">Y se nota.</span>
+    </h2>
+    <div class="mt-10 grid gap-4 md:grid-cols-3">
+      {
+        [
+          ['Mensajes que se pierden', 'Un pedido entre cien mensajes. Nadie sabe si alguien lo tomó, y el cliente llama a preguntar.'],
+          ['Nadie sabe dónde va', 'El negocio no puede decirle a su cliente cuánto falta. El cliente tampoco.'],
+          ['Sin reglas claras', 'Se lo lleva el que contesta primero, no el que está más cerca. Y el bueno no tiene cómo demostrarlo.'],
+        ].map(([t, d]) => (
+          <div class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+            <p class="font-display text-lg font-bold">{t}</p>
+            <p class="mt-2 text-neblina/75">{d}</p>
+          </div>
+        ))
+      }
+    </div>
+    <p class="mt-10 max-w-2xl text-lg text-neblina/85">
+      Arriero mantiene lo que funciona —WhatsApp, la gente de aquí, el trato directo— y le pone orden: un operador que despacha, un mapa en vivo y un
+      enlace para que tu cliente vea su pedido.
+    </p>
+  </div>
+</section>

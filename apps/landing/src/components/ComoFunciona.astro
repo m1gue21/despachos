@@ -1,0 +1,43 @@
+---
+const steps = [
+  {
+    n: '1',
+    title: 'Pides por WhatsApp',
+    text: 'Le escribes al número de Arriero como le escribes a cualquiera: qué hay que llevar, de dónde y para dónde. O nos reenvías el mensaje del cliente.',
+  },
+  {
+    n: '2',
+    title: 'Un operador lo despacha',
+    text: 'Ve en el mapa quién está disponible y cerca, y le ofrece el servicio. Si no lo toma en un minuto, pasa al siguiente.',
+  },
+  {
+    n: '3',
+    title: 'Tu cliente lo sigue en vivo',
+    text: 'Recibe un enlace por WhatsApp: ve quién lleva su pedido, por dónde va y cuánto falta. Al final, lo califica.',
+  },
+];
+---
+
+<section id="como-funciona" class="scroll-mt-20 bg-white">
+  <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
+    <p class="text-sm font-bold uppercase tracking-wider text-trocha-700">Cómo funciona</p>
+    <h2 class="font-display mt-2 max-w-2xl text-3xl font-bold leading-tight sm:text-4xl">Tres pasos. Ninguno es instalar una app.</h2>
+    <ol class="relative mt-12 grid gap-8 md:grid-cols-3">
+      <!-- sendero que une los pasos -->
+      <svg class="absolute left-0 right-0 top-6 hidden h-6 w-full md:block" viewBox="0 0 1000 24" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M60 12 C300 -6 700 30 940 12" fill="none" stroke="#E59A2F" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.1 12"></path>
+      </svg>
+      {
+        steps.map((s) => (
+          <li class="relative">
+            <span class="font-display relative flex h-12 w-12 items-center justify-center rounded-full bg-cafetal text-xl font-extrabold text-white ring-8 ring-white">
+              {s.n}
+            </span>
+            <h3 class="font-display mt-5 text-xl font-bold">{s.title}</h3>
+            <p class="mt-2 leading-relaxed text-piedra">{s.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>

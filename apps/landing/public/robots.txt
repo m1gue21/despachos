@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://arriero.co/sitemap-index.xml

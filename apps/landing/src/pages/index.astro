@@ -1,0 +1,121 @@
+---
+import Audiencia from '../components/Audiencia.astro';
+import Cobertura from '../components/Cobertura.astro';
+import ComoFunciona from '../components/ComoFunciona.astro';
+import CtaFinal from '../components/CtaFinal.astro';
+import Diferencial from '../components/Diferencial.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import Preguntas from '../components/Preguntas.astro';
+import Problema from '../components/Problema.astro';
+import { FAQ } from '../faq';
+import Base from '../layouts/Base.astro';
+import { BRAND, wa } from '../site';
+
+const site = Astro.site!.href.replace(/\/$/, '');
+const title = 'Arriero · Domicilios y transporte en Manizales';
+const description = BRAND.description;
+
+// Datos estructurados: negocio local con área de servicio, sus servicios y las preguntas frecuentes.
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    '@id': `${site}/#negocio`,
+    name: BRAND.name,
+    slogan: BRAND.tagline,
+    description,
+    url: site,
+    logo: `${site}/isotipo.svg`,
+    image: `${site}/og.png`,
+    email: BRAND.email,
+    telephone: `+${BRAND.whatsapp}`,
+    address: { '@type': 'PostalAddress', addressLocality: BRAND.city, addressRegion: BRAND.region, addressCountry: BRAND.country },
+    areaServed: BRAND.areas.map((name) => ({ '@type': 'City', name })),
+    knowsLanguage: 'es-CO',
+    makesOffer: [
+      ['Domicilios', 'Entrega de pedidos de negocios y personas en Manizales y Villamaría.'],
+      ['Mandados', 'Diligencias: pagos, compras y trámites.'],
+      ['Transporte de personas', 'Carros y motos para llevar pasajeros dentro de la ciudad.'],
+    ].map(([name, d]) => ({
+      '@type': 'Offer',
+      itemOffered: { '@type': 'Service', name, description: d, areaServed: BRAND.areas },
+    })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${site}/#web`,
+    name: BRAND.name,
+    url: site,
+    inLanguage: 'es-CO',
+    publisher: { '@id': `${site}/#negocio` },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
+];
+---
+
+<Base title={title} description={description} jsonLd={jsonLd}>
+  <Header />
+  <main id="contenido">
+    <Hero />
+    <Problema />
+    <Audiencia
+      id="negocios"
+      eyebrow="Para negocios"
+      title="Tus domicilios, sin perseguir a nadie."
+      lead="Restaurantes, droguerías, tiendas y emprendimientos de Manizales: tú atiendes a tu cliente, nosotros nos encargamos de que el pedido llegue."
+      items={[
+        { icon: '💬', title: 'Pides por WhatsApp', text: 'Un solo número, sin grupos, sin apps. Nos reenvías el pedido y listo.' },
+        { icon: '📍', title: 'Tu cliente ve el pedido en vivo', text: 'Le llega un enlace con el mensajero en el mapa. Menos llamadas preguntando “¿ya viene?”.' },
+        { icon: '⭐', title: 'Mensajeros calificados', text: 'Cada servicio se califica. Trabajamos con los que tus clientes recomiendan.' },
+        { icon: '📊', title: 'Sabes cuánto despachas', text: 'Te contamos cuántos domicilios hiciste, a qué horas y a qué barrios. Para planear mejor.' },
+      ]}
+      cta={{ label: 'Quiero que me despachen', href: wa('Hola Arriero, tengo un negocio y quiero trabajar con ustedes.') }}
+      secondary={{ label: 'Ver cómo funciona', href: '#como-funciona' }}
+      aside={{
+        title: 'Ideal si…',
+        points: [
+          'Haces domicilios todos los días y hoy dependes de grupos o de un solo mensajero.',
+          'Tus clientes te preguntan a cada rato si ya salió su pedido.',
+          'Quieres crecer sin contratar ni administrar mensajeros.',
+        ],
+      }}
+    />
+    <Audiencia
+      id="conductores"
+      eyebrow="Para conductores y mensajeros"
+      title="Más servicios, menos celular, trato justo."
+      lead="Si ya haces domicilios o transporte en Manizales, Arriero te manda trabajo cerca de donde estás, sin tener que pelearte los pedidos en veinte grupos."
+      tone="warm"
+      items={[
+        { icon: '🛵', title: 'Servicios cerca de ti', text: 'El operador te ofrece lo que te queda cerca. Aceptas o rechazas desde el celular.' },
+        { icon: '🗺️', title: 'Tú decides cómo trabajar', text: 'Por zona (solo avisas tu sector) o con ubicación en vivo. La apagas cuando quieras.' },
+        { icon: '📱', title: 'Sin app obligatoria', text: 'Funciona desde el navegador de cualquier celular. Y si no lo usas, el operador te asigna por WhatsApp.' },
+        { icon: '🏅', title: 'Tu buen trabajo se nota', text: 'Un puntaje con reglas claras: calificaciones, servicios cumplidos y rapidez. Los mejores reciben más.' },
+      ]}
+      cta={{ label: 'Quiero manejar con Arriero', href: wa('Hola Arriero, quiero manejar con ustedes.') }}
+      secondary={{ label: 'Ya tengo cuenta', href: `${BRAND.appUrl}/conductor` }}
+      aside={{
+        title: 'Qué necesitas',
+        points: [
+          'Moto, carro o bicicleta en buen estado.',
+          'Documentos al día (licencia, SOAT y técnico-mecánica cuando aplique).',
+          'Un celular con WhatsApp. Con datos, mejor.',
+          'Ganas de que te recomienden.',
+        ],
+      }}
+    />
+    <ComoFunciona />
+    <Diferencial />
+    <Cobertura />
+    <Preguntas />
+    <CtaFinal />
+  </main>
+  <Footer />
+</Base>

@@ -1,0 +1,99 @@
+---
+---
+
+<section class="relative overflow-hidden">
+  <div class="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-10 sm:px-6 md:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:pb-24">
+    <div>
+      <p class="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-sm font-medium text-cafetal ring-1 ring-cafetal/15">
+        <span class="h-2 w-2 rounded-full bg-carriel"></span> Manizales y Villamaría
+      </p>
+      <h1 class="font-display mt-5 text-[2.6rem] font-extrabold leading-[1.02] tracking-tight text-cafetal-900 sm:text-6xl">
+        Domicilios y transporte, <span class="text-cafetal">despachados por gente de aquí.</span>
+      </h1>
+      <p class="mt-5 max-w-xl text-lg leading-relaxed text-piedra">
+        Pides por WhatsApp como siempre. Un operador que conoce las lomas le asigna tu servicio al mensajero más cercano, y tu cliente lo ve
+        llegar en vivo. Sin apps que instalar.
+      </p>
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a
+          href="#negocios"
+          class="rounded-full bg-cafetal px-6 py-3.5 text-center text-base font-semibold text-white shadow-lg shadow-cafetal/20 transition hover:bg-cafetal-700"
+          >Tengo un negocio</a
+        >
+        <a
+          href="#conductores"
+          class="rounded-full bg-carriel px-6 py-3.5 text-center text-base font-semibold text-cafetal-900 transition hover:bg-carriel-300"
+          >Quiero manejar con Arriero</a
+        >
+      </div>
+      <ul class="mt-8 grid gap-2 text-[15px] text-cafetal-900/80 sm:grid-cols-2">
+        <li class="flex gap-2"><span class="text-cafetal">✓</span> Domicilios, mandados y carros</li>
+        <li class="flex gap-2"><span class="text-cafetal">✓</span> Seguimiento en vivo para tu cliente</li>
+        <li class="flex gap-2"><span class="text-cafetal">✓</span> Mensajeros calificados por clientes</li>
+        <li class="flex gap-2"><span class="text-cafetal">✓</span> Operadores de Manizales, no un robot</li>
+      </ul>
+    </div>
+
+    <!-- Ilustración: las lomas, la ruta y el seguimiento que ve el cliente. -->
+    <div class="relative mx-auto w-full max-w-md lg:max-w-none" aria-hidden="true">
+      <svg viewBox="0 0 520 440" class="w-full">
+        <defs>
+          <linearGradient id="cielo" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#FBE7C4"></stop>
+            <stop offset="1" stop-color="#F6F1E7"></stop>
+          </linearGradient>
+        </defs>
+        <rect x="10" y="10" width="500" height="420" rx="36" fill="url(#cielo)"></rect>
+        <circle cx="400" cy="95" r="34" fill="#F3C77F"></circle>
+        <!-- Cordillera y lomas -->
+        <path d="M10 250 L110 150 L180 205 L270 110 L360 200 L430 150 L510 220 V430 H10Z" fill="#7FA48F" opacity=".55"></path>
+        <path d="M10 300 C90 240 150 250 210 280 S330 230 400 250 470 290 510 270 V430 H10Z" fill="#3E7A60"></path>
+        <path d="M10 360 C100 320 190 340 260 360 S420 320 510 345 V430 H10Z" fill="#1F5C45"></path>
+        <!-- Cafetales -->
+        <g fill="#174A37" opacity=".55">
+          <circle cx="60" cy="385" r="6"></circle><circle cx="82" cy="378" r="6"></circle><circle cx="104" cy="372" r="6"></circle>
+          <circle cx="330" cy="372" r="6"></circle><circle cx="352" cy="366" r="6"></circle><circle cx="374" cy="361" r="6"></circle>
+        </g>
+        <!-- Casitas en la loma -->
+        <g>
+          <rect x="140" y="262" width="26" height="20" fill="#F6F1E7"></rect><path d="M136 264 153 250 170 264Z" fill="#B5532A"></path>
+          <rect x="300" y="238" width="26" height="20" fill="#F6F1E7"></rect><path d="M296 240 313 226 330 240Z" fill="#B5532A"></path>
+          <rect x="430" y="258" width="22" height="18" fill="#F6F1E7"></rect><path d="M427 260 441 248 455 260Z" fill="#B5532A"></path>
+        </g>
+        <!-- La ruta del arriero: loma arriba hasta la entrega -->
+        <path
+          class="ruta"
+          d="M60 410 C120 380 140 340 180 330 S250 300 270 280 S320 250 313 236"
+          fill="none"
+          stroke="#E59A2F"
+          stroke-width="6"
+          stroke-linecap="round"
+          stroke-dasharray="0.1 14"></path>
+        <circle cx="313" cy="222" r="11" fill="#E59A2F"></circle>
+        <circle cx="313" cy="222" r="4" fill="#0F2E23"></circle>
+        <!-- Moto -->
+        <g transform="translate(168 312)">
+          <circle r="17" fill="#fff" stroke="#1F5C45" stroke-width="4"></circle>
+          <text x="0" y="6" text-anchor="middle" font-size="17">🏍️</text>
+        </g>
+      </svg>
+
+      <!-- Tarjeta de seguimiento como la ve el cliente -->
+      <div class="relative z-10 -mt-14 ml-auto mr-2 w-[15.5rem] rounded-3xl border border-cafetal-900/10 bg-white p-4 shadow-2xl sm:absolute sm:-bottom-6 sm:right-6 sm:mt-0">
+        <p class="text-xs font-semibold uppercase tracking-wide text-piedra">Tu domicilio</p>
+        <p class="font-display mt-1 text-lg font-bold leading-tight">Camila va en camino</p>
+        <p class="text-sm text-piedra">A unos 900 m · aprox. 4 min</p>
+        <ol class="mt-3 space-y-1.5 text-sm">
+          <li class="flex items-center gap-2"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-cafetal text-[11px] text-white">✓</span> Pedido recibido</li>
+          <li class="flex items-center gap-2"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-cafetal text-[11px] text-white">✓</span> Recogido</li>
+          <li class="flex items-center gap-2 font-semibold"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-carriel text-[11px] text-cafetal-900">3</span> Llegando</li>
+        </ol>
+      </div>
+      <div class="absolute -top-3 left-2 rounded-2xl bg-cafetal-900 px-4 py-3 text-neblina shadow-xl sm:left-6">
+        <p class="text-xs font-semibold text-carriel-300" aria-hidden="true">★★★★★</p>
+        <p class="text-sm">“Llegó antes de lo que pensé.”</p>
+        <p class="text-[11px] opacity-70">Ejemplo de calificación</p>
+      </div>
+    </div>
+  </div>
+</section>
