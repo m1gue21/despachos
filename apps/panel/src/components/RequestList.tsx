@@ -14,8 +14,8 @@ const FILTERS: { key: string; label: string; statuses: RequestStatus[] }[] = [
 export const STATUS_BADGE: Record<RequestStatus, string> = {
   created: 'bg-red-100 text-red-700',
   offered: 'bg-amber-100 text-amber-800',
-  assigned: 'bg-blue-100 text-blue-700',
-  picked_up: 'bg-violet-100 text-violet-700',
+  assigned: 'bg-primary/10 text-primary',
+  picked_up: 'bg-accent-soft text-trocha',
   completed: 'bg-green-100 text-green-700',
   cancelled: 'bg-zinc-100 text-zinc-600',
 };
@@ -68,7 +68,7 @@ export function RequestList({
                 onClick={() => onSelect(r.id)}
                 className={cn(
                   'w-full border-b border-border px-3 py-2 text-left hover:bg-muted',
-                  selectedId === r.id && 'bg-blue-50',
+                  selectedId === r.id && 'bg-primary/10',
                   late && 'border-l-4 border-l-danger',
                 )}
               >

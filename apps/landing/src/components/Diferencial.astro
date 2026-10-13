@@ -1,0 +1,56 @@
+---
+const rows: [string, string, string][] = [
+  ['Quién asigna', 'El que conteste primero en el grupo', 'Un operador de aquí, al más cercano disponible'],
+  ['Qué ve tu cliente', 'Nada, hasta que le timbran', 'Al mensajero en el mapa, en vivo'],
+  ['Cómo se pide', 'WhatsApp, pero en un grupo de cien', 'WhatsApp, a un solo número'],
+  ['Qué necesita el mensajero', 'Estar pegado al celular todo el día', 'Avisar su zona; la app es opcional'],
+  ['Cómo se mide el trabajo', 'No se mide', 'Calificaciones y un puntaje que el mensajero entiende'],
+];
+---
+
+<section class="bg-neblina">
+  <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
+    <p class="text-sm font-bold uppercase tracking-wider text-trocha-700">Por qué Arriero</p>
+    <h2 class="font-display mt-2 max-w-3xl text-3xl font-bold leading-tight sm:text-4xl">
+      Despacho humano y local, con la tecnología de una app grande.
+    </h2>
+    <!-- Celular: una tarjeta por aspecto (la tabla escondería la columna de Arriero). -->
+    <ul class="mt-10 space-y-3 md:hidden">
+      {
+        rows.map(([k, a, b]) => (
+          <li class="rounded-2xl bg-white p-5 ring-1 ring-cafetal-900/10">
+            <p class="font-semibold">{k}</p>
+            <p class="mt-2 text-sm text-piedra">
+              <span class="font-medium">Grupos de WhatsApp:</span> {a}
+            </p>
+            <p class="mt-2 rounded-lg bg-cafetal/[0.06] px-3 py-2 text-[15px] font-medium">
+              <span class="font-display font-bold text-cafetal">Arriero:</span> {b}
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+    <div class="mt-10 hidden overflow-x-auto rounded-3xl bg-white ring-1 ring-cafetal-900/10 md:block">
+      <table class="w-full min-w-[40rem] text-left text-[15px]">
+        <thead>
+          <tr class="border-b border-cafetal-900/10">
+            <th scope="col" class="p-5 font-semibold text-piedra"><span class="sr-only">Aspecto</span></th>
+            <th scope="col" class="p-5 font-semibold text-piedra">Grupos de WhatsApp</th>
+            <th scope="col" class="p-5 font-display text-lg font-bold text-cafetal">Con Arriero</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            rows.map(([k, a, b]) => (
+              <tr class="border-b border-cafetal-900/5 last:border-0">
+                <th scope="row" class="p-5 font-semibold">{k}</th>
+                <td class="p-5 text-piedra">{a}</td>
+                <td class="bg-cafetal/[0.04] p-5 font-medium">{b}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

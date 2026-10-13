@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { DEMO } from '@/lib/demo';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
+import { Logo } from '@/components/Logo';
 import { Button, ErrorText, Field, Input } from '@/components/ui';
 import { useSession } from '@/lib/session';
 
@@ -43,7 +44,9 @@ export default function LoginPage() {
     <div className="flex h-full items-center justify-center p-4">
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-lg border border-border bg-card p-6 shadow-sm">
         <div>
-          <h1 className="text-lg font-semibold">Despacho</h1>
+          <h1 className="text-xl">
+            <Logo product="Despacho" />
+          </h1>
           <p className="text-sm text-muted-foreground">Entra con tu cuenta de operador o de conductor.</p>
         </div>
         <Field label="Correo">
@@ -77,7 +80,7 @@ export default function LoginPage() {
                     submitRef.current?.focus();
                   }}
                   className={`flex items-center justify-between rounded-md border px-3 py-2 text-left text-sm hover:bg-muted ${
-                    email === a.email ? 'border-primary bg-blue-50' : 'border-border'
+                    email === a.email ? 'border-primary bg-primary/10' : 'border-border'
                   }`}
                 >
                   <span className="font-medium">{a.label}</span>

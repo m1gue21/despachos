@@ -1,0 +1,31 @@
+---
+// Isotipo (A-montaña con sendero) + logotipo "arriero" con el punto de la i en ámbar.
+interface Props {
+  class?: string;
+  tone?: 'dark' | 'light';
+  showWord?: boolean;
+}
+const { class: cls = '', tone = 'dark', showWord = true } = Astro.props;
+const stroke = tone === 'dark' ? '#1F5C45' : '#F6F1E7';
+---
+
+<span class:list={['inline-flex items-center gap-2', cls]}>
+  <svg viewBox="0 0 64 64" class="h-[1.6em] w-[1.6em] shrink-0" aria-hidden="true">
+    <path d="M8 54 32 10l24 44" fill="none" stroke={stroke} stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
+    <path
+      d="M18 51c8-1 5-8 12-10s7-8 3-12"
+      fill="none"
+      stroke="#E59A2F"
+      stroke-width="3.6"
+      stroke-linecap="round"
+      stroke-dasharray="0.1 6.2"></path>
+    <circle cx="33" cy="26" r="4.6" fill="#E59A2F"></circle>
+  </svg>
+  {
+    showWord && (
+      <span class:list={['font-display text-[1.35em] font-extrabold tracking-tight', tone === 'dark' ? 'text-cafetal-900' : 'text-neblina']}>
+        arr<span class="relative">ı<span class="absolute left-1/2 top-[0.08em] h-[0.2em] w-[0.2em] -translate-x-1/2 rounded-full bg-carriel" /></span>ero
+      </span>
+    )
+  }
+</span>

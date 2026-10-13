@@ -1,20 +1,38 @@
 @import "tailwindcss";
 
-/* Tokens estilo shadcn/ui. */
+@import "@fontsource-variable/bricolage-grotesque/wght.css";
+
+/* Identidad Arriero (docs/MARCA.md) sobre tokens estilo shadcn/ui.
+   Contraste verificado: texto blanco sobre primary/ok/warn/idle/danger ≥ 4,5:1. */
 @theme {
-  --color-background: #f7f7f8;
-  --color-foreground: #18181b;
+  --color-background: #f6f1e7; /* neblina */
+  --color-foreground: #0f2e23; /* cafetal-900 */
   --color-card: #ffffff;
-  --color-muted: #f1f1f3;
-  --color-muted-foreground: #6b6b74;
-  --color-border: #e3e3e8;
-  --color-primary: #1d4ed8;
+  --color-muted: #efe8da;
+  --color-muted-foreground: #5b6660; /* piedra */
+  --color-border: #e3dbcb;
+  --color-primary: #1f5c45; /* cafetal */
   --color-primary-foreground: #ffffff;
-  --color-danger: #dc2626;
-  --color-ok: #16a34a;
-  --color-warn: #ea580c;
-  --color-idle: #9ca3af;
+  --color-accent: #e59a2f; /* carriel: rutas, foco, selección */
+  --color-accent-soft: #fbebd0;
+  --color-trocha: #9a4421; /* terracota para texto */
+  --color-danger: #c0392b;
+  --color-ok: #23824a; /* disponible */
+  --color-warn: #b8611a; /* ocupado */
+  --color-idle: #6f7873; /* desconectado */
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+h1,
+h2 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 html,

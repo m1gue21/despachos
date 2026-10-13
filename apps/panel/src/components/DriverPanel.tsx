@@ -91,7 +91,7 @@ export function DriverPanel({
       <ul className="min-h-0 flex-1 overflow-y-auto">
         {visible.length === 0 && <Empty>Sin conductores con ese filtro.</Empty>}
         {visible.map((d) => (
-          <li key={d.id} className={cn('border-b border-border px-3 py-2', highlightId === d.id && 'bg-blue-50')}>
+          <li key={d.id} className={cn('border-b border-border px-3 py-2', highlightId === d.id && 'bg-primary/10')}>
             <div className="flex items-center gap-2">
               <span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', DRIVER_DOT[d.status])} />
               <span className="truncate text-sm font-medium">

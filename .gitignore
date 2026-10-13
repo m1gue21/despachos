@@ -7,3 +7,4 @@ dist/
 .expo/
 *.tsbuildinfo
 .DS_Store
+.astro/

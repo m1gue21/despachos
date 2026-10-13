@@ -1,0 +1,23 @@
+---
+import { BRAND } from '../site';
+---
+
+<section class="bg-white">
+  <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 md:py-20">
+    <div>
+      <p class="text-sm font-bold uppercase tracking-wider text-trocha-700">Cobertura</p>
+      <h2 class="font-display mt-2 text-3xl font-bold leading-tight sm:text-4xl">De Chipre a La Enea, y hasta Villamaría.</h2>
+      <p class="mt-4 text-lg text-piedra">
+        Arrancamos donde nos conocemos cada loma. Vamos sumando barrios y pueblos de Caldas a medida que crece el equipo.
+      </p>
+    </div>
+    <ul class="flex flex-wrap gap-2" aria-label="Sectores con cobertura">
+      {
+        BRAND.sectors.map((s) => (
+          <li class="rounded-full bg-neblina px-4 py-2 font-medium ring-1 ring-cafetal-900/10">{s}</li>
+        ))
+      }
+      <li class="rounded-full bg-cafetal px-4 py-2 font-semibold text-white">Villamaría</li>
+    </ul>
+  </div>
+</section>

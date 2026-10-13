@@ -11,6 +11,8 @@ puede seguir su pedido con un enlace temporal.
 - Despliegue: [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md)
 - **Rama `demo-sin-backend`:** versión que corre solo en el navegador, lista
   para Vercel. Ver [docs/DEMO.md](docs/DEMO.md).
+- Marca (nombre, logo, colores, voz): [docs/MARCA.md](docs/MARCA.md) · landing en
+  [apps/landing](apps/landing)
 
 ## Estado
 
@@ -34,6 +36,7 @@ apps/
   panel/      Next.js: panel del operador (/), web del conductor (/conductor)
               y seguimiento público del cliente (/seguimiento/<token>)
   driver/     App nativa Expo (alternativa, no es el canal principal; ver abajo)
+  landing/    Landing pública de la marca (Astro)
 packages/
   shared/     enums, tipos de API, schemas Zod y textos en español
   db/         migraciones SQL, seed, reset y tests de RLS/máquina de estados

@@ -30,7 +30,7 @@ export function OfferCard({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-center gap-4 overflow-y-auto bg-blue-50 p-5">
+    <div className="fixed inset-0 z-50 flex flex-col justify-center gap-4 overflow-y-auto bg-primary/10 p-5">
       <p className="text-center text-sm font-bold tracking-wide text-primary">NUEVO SERVICIO</p>
       <h1 className="text-center text-3xl font-bold">{SERVICE_LABEL[offer.service]}</h1>
       <p className={`text-center text-6xl font-extrabold tabular-nums ${left <= 10 ? 'text-danger' : ''}`}>{left}s</p>

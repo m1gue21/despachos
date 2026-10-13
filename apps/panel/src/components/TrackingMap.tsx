@@ -19,8 +19,8 @@ function pin(label: string, color: string): HTMLElement {
 
 function driverEl(icon: string): HTMLElement {
   const el = document.createElement('div');
-  el.style.cssText = `width:40px;height:40px;border-radius:50%;background:#fff;border:3px solid #1d4ed8;font-size:20px;
-    display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(29,78,216,.45)`;
+  el.style.cssText = `width:40px;height:40px;border-radius:50%;background:#fff;border:3px solid #1F5C45;font-size:20px;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(15,46,35,.4)`;
   el.textContent = icon;
   return el;
 }
@@ -62,7 +62,14 @@ export function TrackingMap({
       const m = new ml.Map({ container: container.current, style: STYLE_URL, center: [start.lng, start.lat], zoom: 14, attributionControl: { compact: true } });
       m.on('load', () => {
         m.addSource('route', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-        m.addLayer({ id: 'route', type: 'line', source: 'route', paint: { 'line-color': '#1d4ed8', 'line-width': 3, 'line-dasharray': [2, 1.5] } });
+        // Sendero punteado en ámbar, como en el logo.
+        m.addLayer({
+          id: 'route',
+          type: 'line',
+          source: 'route',
+          layout: { 'line-cap': 'round' },
+          paint: { 'line-color': '#E59A2F', 'line-width': 5, 'line-dasharray': [0, 2] },
+        });
         setReady(true);
       });
       unwatch = watchMap(m, (p) => setProblem((cur) => cur ?? p));
@@ -91,8 +98,8 @@ export function TrackingMap({
     markers.current.forEach((mk) => mk.remove());
     markers.current = [];
     const add = (el: HTMLElement, p: Pt) => markers.current.push(new ml.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(m));
-    if (pickup) add(pin('A', '#16a34a'), pickup);
-    if (dropoff) add(pin('B', '#dc2626'), dropoff);
+    if (pickup) add(pin('A', '#1F5C45'), pickup);
+    if (dropoff) add(pin('B', '#B5532A'), dropoff);
     if (driver) add(driverEl(driverIcon), driver);
 
     const to = target === 'pickup' ? pickup : target === 'dropoff' ? dropoff : null;

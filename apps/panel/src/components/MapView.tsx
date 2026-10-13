@@ -8,8 +8,9 @@ import { MapProblem } from './MapProblem';
 
 const STYLE_URL = process.env.NEXT_PUBLIC_MAP_STYLE_URL || 'https://tiles.openfreemap.org/styles/liberty';
 
-const STATUS_COLOR = { available: '#16a34a', busy: '#ea580c', offline: '#9ca3af' } as const;
-const REQUEST_COLOR = { created: '#dc2626', offered: '#d97706', assigned: '#2563eb', picked_up: '#7c3aed' } as const;
+// Colores de marca (docs/MARCA.md); los de estado coinciden con el tema del panel.
+const STATUS_COLOR = { available: '#23824A', busy: '#B8611A', offline: '#6F7873' } as const;
+const REQUEST_COLOR = { created: '#C0392B', offered: '#E59A2F', assigned: '#1F5C45', picked_up: '#9A4421' } as const;
 
 interface Props {
   city: Zone | null;
@@ -34,11 +35,11 @@ function driverPin(d: DriverRow, selected = false): HTMLElement {
   const el = document.createElement('div');
   const size = selected ? 40 : 30;
   el.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;background:#fff;border:3px solid ${STATUS_COLOR[d.status]};
-    outline:${selected ? '3px solid #1d4ed8' : 'none'};outline-offset:2px;z-index:${selected ? 10 : 1};
+    outline:${selected ? '3px solid #E59A2F' : 'none'};outline-offset:2px;z-index:${selected ? 10 : 1};
     display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3);
     position:relative;opacity:${d.is_stale ? 0.45 : 1}`;
   el.innerHTML = `${VEHICLE_ICON[d.vehicle]}${
-    d.is_stale ? '<span style="position:absolute;top:-6px;right:-6px;background:#ea580c;color:#fff;border-radius:8px;font-size:9px;padding:0 3px">!</span>' : ''
+    d.is_stale ? '<span style="position:absolute;top:-6px;right:-6px;background:#B8611A;color:#fff;border-radius:8px;font-size:9px;padding:0 3px">!</span>' : ''
   }`;
   el.title = `${d.display_name} · ${DRIVER_STATUS_LABEL[d.status]}${d.is_stale ? ' · desactualizado' : ''}`;
   return el;
@@ -52,15 +53,15 @@ function sectorBubble(drivers: DriverRow[], sectorName: string, selected = false
     .map((s) => `<span style="display:inline-flex;align-items:center;gap:2px"><i style="width:8px;height:8px;border-radius:50%;background:${STATUS_COLOR[s]};display:inline-block"></i>${count(s)}</span>`)
     .join(' ');
   const stale = drivers.filter((d) => d.is_stale).length;
-  el.style.cssText = `background:${selected ? '#dbeafe' : '#fff'};border:${selected ? '2px solid #1d4ed8' : '1px solid #d4d4d8'};border-radius:14px;padding:3px 8px;font:600 11px system-ui;
+  el.style.cssText = `background:${selected ? '#FBEBD0' : '#fff'};border:${selected ? '2px solid #E59A2F' : '1px solid #E3DBCB'};border-radius:14px;padding:3px 8px;font:600 11px system-ui;
     display:flex;gap:6px;align-items:center;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.25);white-space:nowrap`;
-  el.innerHTML = `<span style="color:#52525b">${esc(sectorName)}</span>${dots}${stale ? `<span style="color:#ea580c">⚠${stale}</span>` : ''}`;
+  el.innerHTML = `<span style="color:#5B6660">${esc(sectorName)}</span>${dots}${stale ? `<span style="color:#B8611A">⚠${stale}</span>` : ''}`;
   el.title = drivers.map((d) => `${d.display_name} (${DRIVER_STATUS_LABEL[d.status]}${d.is_stale ? ', desactualizado' : ''})`).join('\n');
   return el;
 }
 
 function requestPin(r: RequestRow, selected: boolean): HTMLElement {
-  const color = REQUEST_COLOR[r.status as keyof typeof REQUEST_COLOR] ?? '#52525b';
+  const color = REQUEST_COLOR[r.status as keyof typeof REQUEST_COLOR] ?? '#5B6660';
   const el = document.createElement('div');
   el.style.cssText = `width:${selected ? 22 : 16}px;height:${selected ? 22 : 16}px;background:${color};border:2px solid #fff;
     border-radius:50% 50% 50% 0;transform:rotate(-45deg);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.4)`;
@@ -113,11 +114,11 @@ export function MapView({
       m.on('click', (e) => clickRef.current?.({ lng: e.lngLat.lng, lat: e.lngLat.lat }));
       m.on('load', () => {
         m.addSource('sectors', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-        m.addLayer({ id: 'sectors-fill', type: 'fill', source: 'sectors', paint: { 'fill-color': '#1d4ed8', 'fill-opacity': 0.05 } });
-        m.addLayer({ id: 'sectors-line', type: 'line', source: 'sectors', paint: { 'line-color': '#1d4ed8', 'line-opacity': 0.4, 'line-width': 1 } });
+        m.addLayer({ id: 'sectors-fill', type: 'fill', source: 'sectors', paint: { 'fill-color': '#1F5C45', 'fill-opacity': 0.06 } });
+        m.addLayer({ id: 'sectors-line', type: 'line', source: 'sectors', paint: { 'line-color': '#1F5C45', 'line-opacity': 0.45, 'line-width': 1.2 } });
         m.addSource('draft', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-        m.addLayer({ id: 'draft-line', type: 'line', source: 'draft', paint: { 'line-color': '#ea580c', 'line-width': 2, 'line-dasharray': [2, 1] } });
-        m.addLayer({ id: 'draft-pts', type: 'circle', source: 'draft', paint: { 'circle-radius': 4, 'circle-color': '#ea580c' } });
+        m.addLayer({ id: 'draft-line', type: 'line', source: 'draft', paint: { 'line-color': '#E59A2F', 'line-width': 2.5, 'line-dasharray': [2, 1] } });
+        m.addLayer({ id: 'draft-pts', type: 'circle', source: 'draft', paint: { 'circle-radius': 4, 'circle-color': '#E59A2F' } });
         setReady(true);
       });
       unwatch = watchMap(m, (p) => setProblem((cur) => cur ?? p));

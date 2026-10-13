@@ -3,6 +3,7 @@
 import { SERVICE_LABEL, type ServiceType, VEHICLE_ICON, VEHICLE_LABEL, type VehicleType } from '@despacho/shared';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { Logo } from '@/components/Logo';
 import { RatingBox } from '@/components/RatingBox';
 import { TrackingMap } from '@/components/TrackingMap';
 import { cn } from '@/components/ui';
@@ -130,6 +131,10 @@ export default function TrackingPage() {
         {error && <div className="absolute left-3 right-3 top-3 rounded-md bg-orange-50 px-3 py-2 text-sm text-warn shadow">{error}</div>}
       </div>
       <div className="max-h-[55%] overflow-y-auto rounded-t-2xl border-t border-border bg-card p-5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] lg:max-h-none lg:w-[26rem] lg:shrink-0 lg:rounded-none lg:border-r lg:border-t-0 lg:shadow-none">
+        <div className="mb-3 flex items-center justify-between">
+          <Logo className="text-sm" />
+          <span className="text-xs text-muted-foreground">Seguimiento</span>
+        </div>
         <p className="text-xs font-semibold uppercase text-muted-foreground">
           {SERVICE_LABEL[data.service]} · {data.city}
         </p>
@@ -196,7 +201,7 @@ export default function TrackingPage() {
           )}
         </div>
         <p className="mt-4 text-[11px] text-muted-foreground">
-          {updatedAt && `Actualizado ${hhmm(new Date(updatedAt).toISOString())} · `}Enlace temporal, vence a las {hhmm(data.expires_at)}. La línea del mapa es la distancia en línea recta, no la ruta por calles.
+          {updatedAt && `Actualizado ${hhmm(new Date(updatedAt).toISOString())} · `}Enlace temporal (vence a las {hhmm(data.expires_at)}). La línea del mapa es la distancia en línea recta, no la ruta por calles.
         </p>
       </div>
     </div>

@@ -1,0 +1,70 @@
+---
+
+interface Item {
+  icon: string;
+  title: string;
+  text: string;
+}
+interface Props {
+  id: string;
+  eyebrow: string;
+  title: string;
+  lead: string;
+  items: Item[];
+  cta: { label: string; href: string };
+  secondary?: { label: string; href: string };
+  tone?: 'light' | 'warm';
+  aside: { title: string; points: string[] };
+}
+const { id, eyebrow, title, lead, items, cta, secondary, tone = 'light', aside } = Astro.props;
+---
+
+<section id={id} class:list={['scroll-mt-20', tone === 'warm' ? 'bg-neblina-200/60' : 'bg-white']}>
+  <div class="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-[1.3fr_0.7fr]">
+    <div>
+      <p class="text-sm font-bold uppercase tracking-wider text-trocha-700">{eyebrow}</p>
+      <h2 class="font-display mt-2 text-3xl font-bold leading-tight sm:text-4xl">{title}</h2>
+      <p class="mt-4 max-w-2xl text-lg text-piedra">{lead}</p>
+      <div class="mt-10 grid gap-6 sm:grid-cols-2">
+        {
+          items.map((it) => (
+            <div class="flex gap-4">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-cafetal/10 text-xl" aria-hidden="true">
+                {it.icon}
+              </span>
+              <div>
+                <h3 class="font-display text-lg font-bold">{it.title}</h3>
+                <p class="mt-1 text-[15px] leading-relaxed text-piedra">{it.text}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+      <div class="mt-10 flex flex-col gap-3 sm:flex-row">
+        <a href={cta.href} rel="noopener" class="rounded-full bg-cafetal px-6 py-3.5 text-center font-semibold text-white transition hover:bg-cafetal-700"
+          >{cta.label}</a
+        >
+        {
+          secondary && (
+            <a href={secondary.href} class="rounded-full px-6 py-3.5 text-center font-semibold text-cafetal ring-1 ring-cafetal/30 hover:bg-cafetal/5">
+              {secondary.label}
+            </a>
+          )
+        }
+      </div>
+    </div>
+    <aside class="h-fit rounded-3xl bg-cafetal p-7 text-neblina lg:mt-24">
+      <p class="font-display text-xl font-bold">{aside.title}</p>
+      <ul class="mt-4 space-y-3">
+        {
+          aside.points.map((p) => (
+            <li class="flex gap-3 text-[15px] leading-relaxed">
+              <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-carriel" />
+              {p}
+            </li>
+          ))
+        }
+      </ul>
+    </aside>
+  </div>
+</section>

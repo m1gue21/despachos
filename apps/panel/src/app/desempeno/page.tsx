@@ -163,7 +163,7 @@ export default function PerformancePage() {
                   <tr
                     key={r.driver_id}
                     onClick={() => setSelected(r.driver_id)}
-                    className={cn('cursor-pointer border-t border-border hover:bg-muted', selected === r.driver_id && 'bg-blue-50')}
+                    className={cn('cursor-pointer border-t border-border hover:bg-muted', selected === r.driver_id && 'bg-primary/10')}
                   >
                     <td className="px-3 py-2 text-muted-foreground">{i + 1}</td>
                     <td className="px-3 py-2 font-medium">

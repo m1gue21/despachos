@@ -1,0 +1,26 @@
+---
+import { wa } from '../site';
+---
+
+<section class="bg-cafetal text-neblina">
+  <div class="relative mx-auto max-w-6xl overflow-hidden px-4 py-16 sm:px-6 md:py-20">
+    <svg class="pointer-events-none absolute -right-10 bottom-0 h-48 w-[36rem] opacity-25" viewBox="0 0 520 160" aria-hidden="true">
+      <path d="M0 160 L120 40 L200 100 L300 10 L400 90 L520 30 V160Z" fill="#0F2E23"></path>
+      <path d="M40 150 C140 120 180 90 260 80 S380 40 420 30" fill="none" stroke="#E59A2F" stroke-width="5" stroke-linecap="round" stroke-dasharray="0.1 12"></path>
+    </svg>
+    <h2 class="font-display relative max-w-2xl text-3xl font-extrabold leading-tight sm:text-5xl">Lo llevamos, loma arriba.</h2>
+    <p class="relative mt-4 max-w-xl text-lg text-neblina/85">Escríbenos y empezamos esta misma semana, seas negocio o conductor.</p>
+    <div class="relative mt-8 flex flex-col gap-3 sm:flex-row">
+      <a
+        href={wa('Hola Arriero, tengo un negocio y quiero trabajar con ustedes.')}
+        rel="noopener"
+        class="rounded-full bg-carriel px-6 py-3.5 text-center font-semibold text-cafetal-900 transition hover:bg-carriel-300">Soy negocio</a
+      >
+      <a
+        href={wa('Hola Arriero, quiero manejar con ustedes.')}
+        rel="noopener"
+        class="rounded-full px-6 py-3.5 text-center font-semibold text-neblina ring-1 ring-neblina/40 hover:bg-white/10">Soy conductor</a
+      >
+    </div>
+  </div>
+</section>

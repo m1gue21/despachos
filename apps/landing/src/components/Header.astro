@@ -1,0 +1,41 @@
+---
+import { wa } from '../site';
+import Logo from './Logo.astro';
+
+const links = [
+  { href: '#negocios', label: 'Para negocios' },
+  { href: '#conductores', label: 'Para conductores' },
+  { href: '#como-funciona', label: 'Cómo funciona' },
+  { href: '#preguntas', label: 'Preguntas' },
+];
+---
+
+<header class="sticky top-0 z-40 border-b border-cafetal-900/10 bg-neblina/90 backdrop-blur supports-[backdrop-filter]:bg-neblina/75">
+  <nav class="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6" aria-label="Principal">
+    <a href="/" class="text-lg"><Logo /></a>
+    <ul class="ml-auto hidden items-center gap-6 text-[15px] font-medium text-cafetal-900/80 md:flex">
+      {links.map((l) => <li><a class="hover:text-cafetal" href={l.href}>{l.label}</a></li>)}
+    </ul>
+    <a
+      href={wa('Hola Arriero, quiero información.')}
+      class="ml-auto hidden rounded-full bg-cafetal px-4 py-2 text-sm font-semibold text-white transition hover:bg-cafetal-700 md:ml-0 md:inline-block"
+      rel="noopener">Escríbenos</a
+    >
+    <!-- Menú en celular sin JavaScript -->
+    <details class="group relative ml-auto md:hidden">
+      <summary class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-full hover:bg-neblina-200" aria-label="Abrir menú">
+        <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"
+          ><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg
+        >
+      </summary>
+      <div class="absolute right-0 top-12 w-64 rounded-2xl border border-cafetal-900/10 bg-white p-3 shadow-xl">
+        <ul class="space-y-1">
+          {links.map((l) => <li><a class="block rounded-lg px-3 py-2.5 font-medium hover:bg-neblina" href={l.href}>{l.label}</a></li>)}
+        </ul>
+        <a href={wa('Hola Arriero, quiero información.')} class="mt-2 block rounded-full bg-cafetal px-4 py-2.5 text-center font-semibold text-white" rel="noopener"
+          >Escríbenos por WhatsApp</a
+        >
+      </div>
+    </details>
+  </nav>
+</header>

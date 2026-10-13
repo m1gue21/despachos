@@ -49,7 +49,7 @@ export default function UsersPage() {
               <li key={s.id} className="px-4 py-2 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{s.full_name}</span>
-                  <Badge className={s.role === 'admin' ? 'bg-violet-100 text-violet-700' : 'bg-blue-100 text-blue-700'}>
+                  <Badge className={s.role === 'admin' ? 'bg-accent-soft text-trocha' : 'bg-primary/10 text-primary'}>
                     {s.role === 'admin' ? 'Admin' : 'Operador'}
                   </Badge>
                 </div>
