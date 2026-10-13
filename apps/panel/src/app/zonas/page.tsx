@@ -137,10 +137,10 @@ export default function ZonesPage() {
                   <button
                     disabled={!isAdmin}
                     onClick={() => edit(s)}
-                    className={cn('w-full px-3 py-2 text-left text-sm hover:bg-muted disabled:hover:bg-transparent', draft?.id === s.id && 'bg-blue-50')}
+                    className={cn('w-full px-3 py-2 text-left text-sm hover:bg-muted disabled:hover:bg-transparent', draft?.id === s.id && 'bg-primary/10')}
                   >
                     <span className={cn(!s.active && 'line-through opacity-50')}>{s.name}</span>
-                    {s.geom && <Badge className="ml-2 bg-blue-100 text-blue-700">polígono</Badge>}
+                    {s.geom && <Badge className="ml-2 bg-primary/10 text-primary">polígono</Badge>}
                     {s.center_lat == null && <Badge className="ml-2 bg-orange-100 text-orange-700">sin centro</Badge>}
                     {s.aliases.length > 0 && <p className="truncate text-xs text-muted-foreground">{s.aliases.join(', ')}</p>}
                   </button>

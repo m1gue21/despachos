@@ -104,7 +104,7 @@ export function DriversMap({ drivers, sectors, city }: { drivers: DriverRow[]; s
               <li key={d.id}>
                 <button
                   onClick={() => select(d)}
-                  className={cn('w-full border-b border-border px-3 py-2 text-left hover:bg-muted', selected === d.id && 'bg-blue-50')}
+                  className={cn('w-full border-b border-border px-3 py-2 text-left hover:bg-muted', selected === d.id && 'bg-primary/10')}
                 >
                   <div className="flex items-center gap-2">
                     <span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', DRIVER_DOT[d.status])} />

@@ -4,6 +4,7 @@ import { DEMO_DRIVERS, DEMO_PASSWORD } from '@despacho/shared';
 import Link from 'next/link';
 import { type FormEvent, useState } from 'react';
 import { api, driverClient } from '@/lib/api';
+import { Logo } from '../Logo';
 import { Button, ErrorText, Field, Input, cn } from '../ui';
 
 const SHOW_DEMO = process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_DEMO_LOGINS === '1';
@@ -33,7 +34,9 @@ export function DriverLogin({ onLogged }: { onLogged: () => void }) {
   return (
     <form onSubmit={submit} className="mx-auto flex min-h-full max-w-md flex-col justify-center gap-4 p-6">
       <div>
-        <h1 className="text-2xl font-bold">Despacho · Conductor</h1>
+        <h1 className="text-2xl">
+          <Logo product="Conductor" />
+        </h1>
         <p className="text-sm text-muted-foreground">Entra con el correo y la contraseña que te dio el operador.</p>
       </div>
       <Field label="Correo">
@@ -67,7 +70,7 @@ export function DriverLogin({ onLogged }: { onLogged: () => void }) {
               }}
               className={cn(
                 'flex w-full items-center justify-between rounded-lg border px-3 py-3 text-left',
-                email === a.email ? 'border-primary bg-blue-50' : 'border-border bg-card',
+                email === a.email ? 'border-primary bg-primary/10' : 'border-border bg-card',
               )}
             >
               <span className="font-medium">{a.label}</span>

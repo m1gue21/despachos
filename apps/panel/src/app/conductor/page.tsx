@@ -14,6 +14,7 @@ import { ActiveService } from '@/components/driver/ActiveService';
 import { Consent } from '@/components/driver/Consent';
 import { DriverLogin } from '@/components/driver/DriverLogin';
 import { OfferCard } from '@/components/driver/OfferCard';
+import { Logo } from '@/components/Logo';
 import { Button, cn } from '@/components/ui';
 import { ApiError, driverClient } from '@/lib/api';
 import { LOCATION_SILENCE_MS, flushPending, isLiveRunning, isSecureForGeo, live, startLive, stopLive } from '@/lib/driverLive';
@@ -309,6 +310,7 @@ export default function DriverPage() {
         </div>
       ) : (
         <div className="mx-auto max-w-md space-y-3 p-4 pb-10">
+          <Logo product="Conductor" className="text-sm" />
           <header className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold">{d.display_name}</h1>
@@ -367,7 +369,7 @@ export default function DriverPage() {
                       onClick={() => void patchPresence({ sector_zone_id: z.id, location_mode: 'zone' })}
                       className={cn(
                         'rounded-full border px-3 py-2 text-[15px]',
-                        d.sector_zone_id === z.id ? 'border-primary bg-blue-100' : 'border-border bg-card',
+                        d.sector_zone_id === z.id ? 'border-primary bg-primary/10' : 'border-border bg-card',
                       )}
                     >
                       {z.name}

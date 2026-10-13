@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { type ReactNode, useEffect, useState } from 'react';
 import { useRealtime } from '@/lib/realtime';
 import { useSession } from '@/lib/session';
+import { Logo } from './Logo';
 import { cn } from './ui';
 
 const NAV = [
@@ -55,7 +56,9 @@ export function AppShell({ children, actions }: { children: ReactNode; actions?:
             <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
         </button>
-        <span className="hidden whitespace-nowrap font-semibold sm:inline">Despacho</span>
+        <Link href="/" className="hidden shrink-0 sm:inline-flex" aria-label="Inicio">
+          <Logo product="Despacho" />
+        </Link>
         {cities.length > 1 ? (
           <select
             className="h-8 min-w-0 max-w-[9rem] rounded-md border border-border bg-card px-2 text-sm"

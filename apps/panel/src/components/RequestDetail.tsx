@@ -241,7 +241,7 @@ export function RequestDetail({ id, drivers, onClose }: { id: string; drivers: D
                 {suggestions.map((s) => (
                   <li key={s.driver_id}>
                     <button
-                      className={cn('flex w-full items-center gap-2 rounded px-2 py-1 text-left text-sm hover:bg-muted', pick === s.driver_id && 'bg-blue-50')}
+                      className={cn('flex w-full items-center gap-2 rounded px-2 py-1 text-left text-sm hover:bg-muted', pick === s.driver_id && 'bg-primary/10')}
                       onClick={() => setPick(s.driver_id)}
                     >
                       <span>{VEHICLE_ICON[s.vehicle]}</span>
