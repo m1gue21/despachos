@@ -265,6 +265,16 @@ update drivers set tracking_required = true
 where id in ('20000000-0000-0000-0000-000000000011', '20000000-0000-0000-0000-000000000012',
              '20000000-0000-0000-0000-000000000013', '20000000-0000-0000-0000-000000000014');
 
+-- Camila, Jhon y Luz Marina arrancan en vivo y con señal fresca (en su sector). Andrés
+-- también, pero nadie lo mantiene vivo: con `pnpm simulate` los otros tres siguen
+-- reportando y Andrés se queda mudo, y se ve una alerta de verdad.
+update driver_presence p
+set location_mode = 'live', last_seen_at = now(), accuracy_m = 10,
+    position = (select z.center from zones z where z.id = p.sector_zone_id)
+where p.driver_id in ('20000000-0000-0000-0000-000000000011', '20000000-0000-0000-0000-000000000012',
+                      '20000000-0000-0000-0000-000000000013')
+  and p.sector_zone_id is not null;
+
 update driver_presence
 set device = '{"permission":"always","gps_enabled":true,"battery":74,"charging":false,"mocked":false,"app_version":"0.1.0","os":"android 14"}',
     device_at = now()

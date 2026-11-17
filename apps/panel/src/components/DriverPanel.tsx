@@ -5,6 +5,7 @@ import {
   DRIVER_STATUS_LABEL,
   type DriverRow,
   type DriverStatus,
+  ALERT_REASON_LABEL,
   LOCATION_MODE_LABEL,
   VEHICLE_ICON,
   type Zone,
@@ -98,7 +99,11 @@ export function DriverPanel({
                 {VEHICLE_ICON[d.vehicle]} {d.display_name}
               </span>
               {!d.has_app && <Badge className="bg-zinc-100 text-zinc-600">sin app</Badge>}
-              {d.is_stale && d.status !== 'offline' && <Badge className="bg-orange-100 text-orange-700">desactualizado</Badge>}
+              {d.alert_reason ? (
+                <Badge className="bg-red-100 text-danger">⚠ {ALERT_REASON_LABEL[d.alert_reason]}</Badge>
+              ) : (
+                d.is_stale && d.status !== 'offline' && <Badge className="bg-orange-100 text-orange-700">desactualizado</Badge>
+              )}
             </div>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {LOCATION_MODE_LABEL[d.location_mode]}

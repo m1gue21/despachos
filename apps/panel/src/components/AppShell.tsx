@@ -3,8 +3,11 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { type ReactNode, useEffect, useState } from 'react';
-import { useRealtime } from '@/lib/realtime';
+import { useRealtime, useRealtimeEvent } from '@/lib/realtime';
 import { useSession } from '@/lib/session';
+import { beep } from '@/lib/sound';
+import { useToast } from '@/lib/toast';
+import { useApi } from '@/lib/useApi';
 import { Logo } from './Logo';
 import { cn } from './ui';
 
@@ -12,6 +15,7 @@ const NAV = [
   { href: '/', label: 'Tablero' },
   { href: '/conductores', label: 'Conductores' },
   { href: '/zonas', label: 'Zonas y grupos' },
+  { href: '/control', label: 'Control' },
   { href: '/metricas', label: 'Métricas' },
   { href: '/desempeno', label: 'Desempeño', adminOnly: true },
   { href: '/usuarios', label: 'Usuarios', adminOnly: true },
@@ -29,6 +33,21 @@ export function AppShell({ children, actions }: { children: ReactNode; actions?:
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const toast = useToast();
+
+  // Alertas de señal perdida abiertas: contador en el menú y sonido cuando se abre una nueva.
+  const alerts = useApi<unknown[]>(me && cityId ? `/alerts?city=${cityId}&open=1` : null, {
+    tables: ['tracking_alerts'],
+    city: cityId,
+    intervalMs: 30_000,
+  });
+  const alertCount = alerts.data?.length ?? 0;
+  useRealtimeEvent((m) => {
+    if (m.type === 'change' && m.table === 'tracking_alerts' && m.event === 'opened' && m.city === cityId) {
+      beep('alert');
+      toast('⚠ Un conductor perdió la señal. Mira Control.', 'error');
+    }
+  });
 
   useEffect(() => setMenuOpen(false), [pathname]);
 
@@ -47,11 +66,12 @@ export function AppShell({ children, actions }: { children: ReactNode; actions?:
       <header className="relative flex h-12 shrink-0 items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-4">
         {/* Menú hamburguesa bajo xl: el menú completo no cabe en una línea. */}
         <button
-          className="-ml-1 flex h-9 w-9 items-center justify-center rounded-md hover:bg-muted xl:hidden"
+          className="relative -ml-1 flex h-9 w-9 items-center justify-center rounded-md hover:bg-muted xl:hidden"
           onClick={() => setMenuOpen((o) => !o)}
           aria-label="Menú"
           aria-expanded={menuOpen}
         >
+          {alertCount > 0 && <span className="absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full bg-danger ring-2 ring-card" />}
           <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
             <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
@@ -86,6 +106,9 @@ export function AppShell({ children, actions }: { children: ReactNode; actions?:
               )}
             >
               {n.label}
+              {n.href === '/control' && alertCount > 0 && (
+                <span className="ml-1.5 rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-bold text-white">{alertCount}</span>
+              )}
             </Link>
           ))}
         </nav>
@@ -117,6 +140,9 @@ export function AppShell({ children, actions }: { children: ReactNode; actions?:
                   className={cn('block rounded-md px-3 py-2.5 text-sm', pathname === n.href ? 'bg-muted font-medium' : 'hover:bg-muted')}
                 >
                   {n.label}
+                  {n.href === '/control' && alertCount > 0 && (
+                    <span className="ml-2 rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-bold text-white">{alertCount}</span>
+                  )}
                 </Link>
               ))}
               <div className="my-2 border-t border-border" />

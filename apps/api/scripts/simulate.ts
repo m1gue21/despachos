@@ -84,12 +84,45 @@ async function tick(sims: Sim[]) {
   );
 }
 
+// Conductores piloto (ubicación obligatoria) del seed de demostración: siguen
+// reportando mientras corre el simulador, salvo Andrés, que se queda mudo a propósito
+// para que el panel Control muestre una alerta real.
+const PILOTS = ['20000000-0000-0000-0000-000000000011', '20000000-0000-0000-0000-000000000012', '20000000-0000-0000-0000-000000000013'];
+const pilotPos = new Map<string, { lat: number; lng: number; heading: number }>();
+{
+  const { rows } = await pool.query(
+    `select driver_id, st_y(position::geometry) as lat, st_x(position::geometry) as lng
+     from driver_presence where driver_id = any($1) and location_mode = 'live' and position is not null`,
+    [PILOTS],
+  );
+  for (const r of rows) pilotPos.set(r.driver_id, { lat: r.lat, lng: r.lng, heading: rand(0, 2 * Math.PI) });
+}
+
+async function tickPilots() {
+  for (const p of pilotPos.values()) {
+    p.heading += rand(-0.6, 0.6);
+    p.lat += Math.sin(p.heading) * 0.0002;
+    p.lng += Math.cos(p.heading) * 0.0002;
+  }
+  const ids = [...pilotPos.keys()];
+  if (ids.length === 0) return;
+  await pool.query(
+    `update driver_presence p
+     set position = st_setsrid(st_makepoint(v.lng, v.lat), 4326)::geography, last_seen_at = now(), accuracy_m = 8,
+         device = coalesce(p.device, '{}'::jsonb) || '{"permission":"always","gps_enabled":true}'::jsonb, device_at = now()
+     from unnest($1::uuid[], $2::float8[], $3::float8[]) as v(id, lng, lat)
+     where p.driver_id = v.id and p.location_mode = 'live'`,
+    [ids, ids.map((i) => pilotPos.get(i)!.lng), ids.map((i) => pilotPos.get(i)!.lat)],
+  );
+}
+
 const sims = await setup();
 console.log(`${sims.length} conductores simulados (${sims.filter((s) => s.live).length} en vivo). Ctrl+C para parar.`);
 let ticks = 0;
 const timer = setInterval(async () => {
   const t0 = Date.now();
   await tick(sims).catch((err) => console.error('tick falló:', err.message));
+  await tickPilots().catch((err) => console.error('piloto falló:', err.message));
   if (++ticks % 10 === 0) console.log(`tick ${ticks} · ${Date.now() - t0} ms`);
 }, TICK_MS);
 

@@ -28,9 +28,18 @@ interface Form {
   plate: string;
   service_types: ServiceType[];
   active: boolean;
+  tracking_required: boolean;
 }
 
-const EMPTY: Form = { display_name: '', phone: '', vehicle: 'moto', plate: '', service_types: ['delivery'], active: true };
+const EMPTY: Form = {
+  display_name: '',
+  phone: '',
+  vehicle: 'moto',
+  plate: '',
+  service_types: ['delivery'],
+  active: true,
+  tracking_required: false,
+};
 
 export default function DriversPage() {
   const { cityId, city } = useSession();
@@ -76,6 +85,7 @@ export default function DriversPage() {
             plate: d.plate ?? '',
             service_types: d.service_types,
             active: d.active,
+            tracking_required: d.tracking_required,
           },
     );
   };
@@ -165,6 +175,7 @@ export default function DriversPage() {
                         <td className="px-3 py-2">
                           <span className={cn('mr-2 inline-block h-2 w-2 rounded-full', DRIVER_DOT[d.status])} />
                           {d.display_name} {!d.active && <Badge className="bg-zinc-100">inactivo</Badge>}
+                  {d.tracking_required && <Badge className="ml-1 bg-primary/10 text-primary">control</Badge>}
                         </td>
                         <td className="px-3 py-2">{phonePretty(d.phone)}</td>
                         <td className="px-3 py-2">
@@ -243,6 +254,21 @@ export default function DriversPage() {
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
             Activo
+          </label>
+          <label className="flex items-start gap-2 rounded-lg border border-border p-3 text-sm">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={form.tracking_required}
+              onChange={(e) => setForm({ ...form, tracking_required: e.target.checked })}
+            />
+            <span>
+              <span className="font-medium">Ubicación obligatoria en turno</span>
+              <span className="block text-xs text-muted-foreground">
+                Mientras esté disponible u ocupado debe compartir su ubicación en vivo, y recibirás una alerta en Control si se corta. Fuera de
+                turno no se rastrea nada. Requiere la app del conductor.
+              </span>
+            </span>
           </label>
           <ErrorText>{error}</ErrorText>
           <div className="flex justify-end gap-2">

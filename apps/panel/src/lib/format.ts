@@ -31,3 +31,20 @@ export function distance(m: number | null): string {
 
 // Minutos sin asignar a partir de los cuales la solicitud se pone en rojo.
 export const UNASSIGNED_ALERT_MINUTES = 5;
+
+// 125 → "2 h 05 min"
+export function duration(minutes: number): string {
+  const m = Math.max(0, Math.round(minutes));
+  if (m < 60) return `${m} min`;
+  return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`;
+}
+
+export function dayLabel(iso: string): string {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+export function shiftDay(iso: string, delta: number): string {
+  const d = new Date(`${iso}T12:00:00`);
+  d.setDate(d.getDate() + delta);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}

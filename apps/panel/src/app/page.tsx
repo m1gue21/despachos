@@ -1,6 +1,6 @@
 'use client';
 
-import type { DriverRow, RequestRow, WhatsappGroup, Zone } from '@despacho/shared';
+import type { DriverRow, Proposal, RequestRow, WhatsappGroup, Zone } from '@despacho/shared';
 import { useCallback, useEffect, useState } from 'react';
 import { AppShell } from '@/components/AppShell';
 import { DriverPanel } from '@/components/DriverPanel';
@@ -9,6 +9,7 @@ import { NewRequestDialog } from '@/components/NewRequestDialog';
 import { RequestDetail } from '@/components/RequestDetail';
 import { RequestList } from '@/components/RequestList';
 import { Button, Kbd, cn } from '@/components/ui';
+import { approve } from '@/lib/assign';
 import { useRealtimeEvent } from '@/lib/realtime';
 import { useSession } from '@/lib/session';
 import { beep } from '@/lib/sound';
@@ -27,6 +28,27 @@ export default function BoardPage() {
     tables: ['requests'],
     city: cityId,
   });
+  // Asignación asistida: la mejor propuesta de Arriero para cada pedido sin asignar.
+  const proposalsApi = useApi<Proposal[]>(cityId ? `/proposals?city=${cityId}` : null, {
+    tables: ['requests', 'driver_presence', 'request_events'],
+    city: cityId,
+    intervalMs: 30_000,
+  });
+  const proposals = Object.fromEntries((proposalsApi.data ?? []).map((p) => [p.request_id, p]));
+  const [approving, setApproving] = useState<string | null>(null);
+  const approveProposal = async (requestId: string, p: Proposal) => {
+    setApproving(requestId);
+    try {
+      await approve(requestId, p);
+      toast(p.has_app ? `Oferta enviada a ${p.display_name}` : `Asignada a ${p.display_name}: avísale por WhatsApp`, 'ok');
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'No se pudo aprobar', 'error');
+    } finally {
+      setApproving(null);
+      void proposalsApi.reload();
+    }
+  };
+
   // La caducidad depende del reloj: recarga cada 30 s además de los avisos.
   const drivers = useApi<DriverRow[]>(cityId ? `/drivers?city=${cityId}` : null, {
     tables: ['driver_presence', 'drivers', 'requests'],
@@ -111,7 +133,14 @@ export default function BoardPage() {
           {selected ? (
             <RequestDetail key={selected} id={selected} drivers={drivers.data ?? []} onClose={() => setSelected(null)} />
           ) : (
-            <RequestList requests={requests.data ?? []} selectedId={selected} onSelect={select} />
+            <RequestList
+              requests={requests.data ?? []}
+              selectedId={selected}
+              onSelect={select}
+              proposals={proposals}
+              onApprove={approveProposal}
+              approving={approving}
+            />
           )}
         </aside>
         <section className={cn('relative min-h-0 flex-1 xl:block', tab !== 'map' && 'hidden')}>

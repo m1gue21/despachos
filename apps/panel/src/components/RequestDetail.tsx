@@ -6,13 +6,14 @@ import {
   REQUEST_STATUS_LABEL,
   type RequestDetail as Detail,
   SERVICE_LABEL,
-  type Suggestion,
+  type CandidatesResponse,
   VEHICLE_ICON,
   formatWhatsappMessage,
 } from '@despacho/shared';
 import { useState } from 'react';
 import { api } from '@/lib/api';
-import { distance, elapsed, phonePretty, time } from '@/lib/format';
+import { approve, approveLabel } from '@/lib/assign';
+import { elapsed, phonePretty, time } from '@/lib/format';
 import { useApi } from '@/lib/useApi';
 import { useToast } from '@/lib/toast';
 import { STATUS_BADGE } from './RequestList';
@@ -22,8 +23,9 @@ export function RequestDetail({ id, drivers, onClose }: { id: string; drivers: D
   const toast = useToast();
   const { data: r, error } = useApi<Detail>(`/requests/${id}`, { tables: ['requests', 'request_events'], id });
   const open = r && ['created', 'offered'].includes(r.status);
-  const { data: suggestions } = useApi<Suggestion[]>(open ? `/requests/${id}/suggestions` : null, {
-    tables: ['driver_presence', 'requests'],
+  // Candidatos de Arriero: del mejor al peor, sin quien ya rechazó o dejó vencer este pedido.
+  const { data: cands, reload: reloadCands } = useApi<CandidatesResponse>(open ? `/requests/${id}/candidates` : null, {
+    tables: ['driver_presence', 'requests', 'request_events'],
     city: r?.city_zone_id,
   });
   const [pick, setPick] = useState('');
@@ -233,26 +235,52 @@ export function RequestDetail({ id, drivers, onClose }: { id: string; drivers: D
 
         {open && (
           <div>
-            <h3 className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Sugeridos</h3>
-            {!suggestions?.length ? (
-              <p className="text-xs text-muted-foreground">Sin conductores disponibles con ubicación al día para este servicio.</p>
+            <h3 className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Candidatos de Arriero</h3>
+            {!cands?.candidates.length ? (
+              <p className="text-xs text-muted-foreground">
+                Sin conductores disponibles con ubicación al día para este servicio. Elige uno a mano arriba.
+              </p>
             ) : (
-              <ul className="space-y-1">
-                {suggestions.map((s) => (
-                  <li key={s.driver_id}>
-                    <button
-                      className={cn('flex w-full items-center gap-2 rounded px-2 py-1 text-left text-sm hover:bg-muted', pick === s.driver_id && 'bg-primary/10')}
-                      onClick={() => setPick(s.driver_id)}
-                    >
-                      <span>{VEHICLE_ICON[s.vehicle]}</span>
-                      <span className="font-medium">{s.display_name}</span>
-                      {s.same_sector && <Badge className="bg-green-100 text-green-700">mismo sector</Badge>}
-                      {!s.has_app && <Badge className="bg-zinc-100 text-zinc-600">sin app</Badge>}
-                      <span className="ml-auto text-xs text-muted-foreground">{distance(s.distance_m) || s.sector_name}</span>
-                    </button>
+              <ul className="space-y-1.5">
+                {cands.candidates.map((c, i) => (
+                  <li key={c.driver_id} className={cn('rounded-lg border p-2', i === 0 ? 'border-primary/40 bg-accent-soft' : 'border-border')}>
+                    <div className="flex items-center gap-2">
+                      <span>{VEHICLE_ICON[c.vehicle]}</span>
+                      <span className="text-sm font-semibold">{c.display_name}</span>
+                      {i === 0 && <Badge className="bg-primary text-white">Mejor opción</Badge>}
+                      {!c.has_app && <Badge className="bg-zinc-100 text-zinc-600">sin app</Badge>}
+                      <Button
+                        size="sm"
+                        variant={i === 0 ? 'primary' : 'outline'}
+                        className="ml-auto"
+                        disabled={busy || r.status !== 'created'}
+                        title={r.status !== 'created' ? 'Retira la oferta actual para elegir otro conductor' : ''}
+                        onClick={async () => {
+                          setBusy(true);
+                          try {
+                            await approve(id, c);
+                            toast(c.has_app ? `Oferta enviada a ${c.display_name}` : `Asignada a ${c.display_name}: avísale por WhatsApp`);
+                          } catch (e) {
+                            toast(e instanceof Error ? e.message : 'No se pudo', 'error');
+                          } finally {
+                            setBusy(false);
+                            void reloadCands();
+                          }
+                        }}
+                      >
+                        {approveLabel(c.has_app)}
+                      </Button>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{c.reason}</p>
                   </li>
                 ))}
               </ul>
+            )}
+            {cands && cands.declined.length > 0 && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Ya no se proponen:{' '}
+                {cands.declined.map((d) => `${d.display_name} (${d.why === 'timeout' ? 'no respondió' : 'rechazó'})`).join(', ')}.
+              </p>
             )}
           </div>
         )}

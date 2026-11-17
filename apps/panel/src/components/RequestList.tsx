@@ -1,7 +1,8 @@
 'use client';
 
-import { REQUEST_STATUS_LABEL, type RequestRow, type RequestStatus, SERVICE_LABEL } from '@despacho/shared';
+import { type Proposal, REQUEST_STATUS_LABEL, type RequestRow, type RequestStatus, SERVICE_LABEL, VEHICLE_ICON } from '@despacho/shared';
 import { useEffect, useState } from 'react';
+import { approveLabel } from '@/lib/assign';
 import { UNASSIGNED_ALERT_MINUTES, elapsed, minutesSince, time } from '@/lib/format';
 import { Badge, Empty, cn } from './ui';
 
@@ -24,10 +25,17 @@ export function RequestList({
   requests,
   selectedId,
   onSelect,
+  proposals = {},
+  onApprove,
+  approving,
 }: {
   requests: RequestRow[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  // Mejor propuesta de Arriero por pedido sin asignar; el administrador la aprueba aquí mismo.
+  proposals?: Record<string, Proposal>;
+  onApprove?: (requestId: string, p: Proposal) => void;
+  approving?: string | null;
 }) {
   const [filter, setFilter] = useState('open');
   const [now, setNow] = useState(() => Date.now());
@@ -63,15 +71,11 @@ export function RequestList({
         {visible.map((r) => {
           const late = r.status === 'created' && minutesSince(r.created_at, now) > UNASSIGNED_ALERT_MINUTES;
           return (
-            <li key={r.id}>
-              <button
-                onClick={() => onSelect(r.id)}
-                className={cn(
-                  'w-full border-b border-border px-3 py-2 text-left hover:bg-muted',
-                  selectedId === r.id && 'bg-primary/10',
-                  late && 'border-l-4 border-l-danger',
-                )}
-              >
+            <li
+              key={r.id}
+              className={cn('border-b border-border', selectedId === r.id && 'bg-primary/10', late && 'border-l-4 border-l-danger')}
+            >
+              <button onClick={() => onSelect(r.id)} className="w-full px-3 py-2 text-left hover:bg-muted">
                 <div className="flex items-center gap-1.5">
                   <Badge className={STATUS_BADGE[r.status]}>{REQUEST_STATUS_LABEL[r.status]}</Badge>
                   <span className="text-xs font-medium">{SERVICE_LABEL[r.service]}</span>
@@ -89,6 +93,34 @@ export function RequestList({
                     .join(' · ')}
                 </p>
               </button>
+              {r.status === 'created' && onApprove && (
+                <div className="px-3 pb-2.5">
+                  {proposals[r.id] ? (
+                    <div className="flex items-center gap-2 rounded-lg bg-accent-soft px-2.5 py-1.5">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-semibold">
+                          {VEHICLE_ICON[proposals[r.id]!.vehicle]} Sugerido: {proposals[r.id]!.display_name}
+                          {proposals[r.id]!.declined > 0 && (
+                            <span className="font-normal text-muted-foreground"> · {proposals[r.id]!.declined} ya dijo que no</span>
+                          )}
+                        </p>
+                        <p className="truncate text-[11px] text-muted-foreground">{proposals[r.id]!.reason}</p>
+                      </div>
+                      <button
+                        className="shrink-0 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-primary/90 disabled:opacity-50"
+                        disabled={approving === r.id}
+                        onClick={() => onApprove(r.id, proposals[r.id]!)}
+                      >
+                        {approving === r.id ? '…' : approveLabel(proposals[r.id]!.has_app)}
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="rounded-lg bg-muted px-2.5 py-1.5 text-xs text-muted-foreground">
+                      Sin candidatos disponibles ahora. Abre el pedido para elegir a mano.
+                    </p>
+                  )}
+                </div>
+              )}
             </li>
           );
         })}
