@@ -104,6 +104,32 @@ export default async function requestRoutes(app: FastifyInstance) {
     });
   });
 
+  // Asignación asistida: la mejor propuesta de cada pedido sin asignar. El
+  // administrador la aprueba (oferta o asignación directa) con un clic.
+  app.get('/proposals', async (req) => {
+    const q = z.object({ city: z.string().uuid() }).parse(req.query);
+    return withUser(req.session.userId, async (db) => (await db.query(`select * from propose_for_city($1)`, [q.city])).rows);
+  });
+
+  // Los 5 mejores candidatos de un pedido y quién ya lo rechazó o dejó vencer.
+  app.get('/requests/:id/candidates', async (req) => {
+    const { id } = idParam.parse(req.params);
+    return withUser(req.session.userId, async (db) => {
+      const candidates = (await db.query(`select * from rank_drivers($1, 5)`, [id])).rows;
+      const declined = (
+        await db.query(
+          `select distinct on (d.id) d.id as driver_id, d.display_name,
+                  case when e.payload ->> 'reason' = 'timeout' then 'timeout' else 'rejected' end as why
+           from request_events e join drivers d on d.id = (e.payload ->> 'driver_id')::uuid
+           where e.request_id = $1 and e.type = 'rejected'
+           order by d.id, e.created_at desc`,
+          [id],
+        )
+      ).rows;
+      return { candidates, declined };
+    });
+  });
+
   app.get('/requests/:id/suggestions', async (req) => {
     const { id } = idParam.parse(req.params);
     const q = z.object({ radius: z.coerce.number().int().positive().default(5000) }).parse(req.query);

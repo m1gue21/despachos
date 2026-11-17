@@ -58,9 +58,9 @@ export default async function driverRoutes(app: FastifyInstance) {
     const b = driverInputSchema.parse(req.body);
     return withUser(req.session.userId, async (db) => {
       const { rows } = await db.query(
-        `insert into drivers (city_zone_id, display_name, phone, vehicle, plate, service_types, active)
-         values ($1, $2, $3, $4, $5, $6, $7) returning id`,
-        [b.city_zone_id, b.display_name, b.phone, b.vehicle, b.plate, b.service_types, b.active],
+        `insert into drivers (city_zone_id, display_name, phone, vehicle, plate, service_types, active, tracking_required)
+         values ($1, $2, $3, $4, $5, $6, $7, $8) returning id`,
+        [b.city_zone_id, b.display_name, b.phone, b.vehicle, b.plate, b.service_types, b.active, b.tracking_required],
       );
       return (await db.query(`select * from driver_board where id = $1`, [rows[0].id])).rows[0];
     });

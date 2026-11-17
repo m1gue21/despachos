@@ -12,6 +12,17 @@ export function startJobs(log: FastifyBaseLogger) {
     }
   }, 5_000);
 
+  // Alertas de señal perdida: abre, actualiza y cierra según el estado de
+  // cada conductor con ubicación obligatoria que esté en turno.
+  const alerts = setInterval(async () => {
+    try {
+      const { rows } = await ownerPool.query<{ n: number }>('select refresh_tracking_alerts() as n');
+      if (rows[0]!.n > 0) log.info(`${rows[0]!.n} alerta(s) de señal nueva(s)`);
+    } catch (err) {
+      log.error({ err }, 'refresh_tracking_alerts falló');
+    }
+  }, 15_000);
+
   const purge = async () => {
     try {
       const { rows } = await ownerPool.query<{ n: number }>('select purge_location_history() as n');
@@ -25,6 +36,7 @@ export function startJobs(log: FastifyBaseLogger) {
 
   return () => {
     clearInterval(expire);
+    clearInterval(alerts);
     clearInterval(daily);
   };
 }

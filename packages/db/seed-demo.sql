@@ -28,7 +28,7 @@ insert into profiles (id, role, full_name, phone, consent_at, consent_version) v
   ('00000000-0000-0000-0000-0000000000d3', 'driver', 'Camila Duque',      '3110000001', null, null),
   ('00000000-0000-0000-0000-0000000000d4', 'driver', 'Jhon Ocampo',       '3110000002', null, null),
   ('00000000-0000-0000-0000-0000000000d5', 'driver', 'Luz Marina Giraldo','3110000003', null, null),
-  ('00000000-0000-0000-0000-0000000000d6', 'driver', 'Andrés Henao',      '3110000004', now(), '2026-10-v2'),
+  ('00000000-0000-0000-0000-0000000000d6', 'driver', 'Andrés Henao',      '3110000004', now(), '2026-11-v3'),
   ('00000000-0000-0000-0000-0000000000d7', 'driver', 'Valentina Cardona', '3110000005', null, null);
 
 -- ── Conductores ─────────────────────────────────────────────────────────
@@ -254,4 +254,92 @@ begin
       end loop;
     end loop;
   end loop;
+end $$;
+
+
+-- ── Control de repartidores (piloto) ────────────────────────────────────
+-- Ubicación obligatoria en turno para cuatro conductores con app, y datos para
+-- ver el panel Control con algo adentro: recorridos de hoy y de ayer, turnos,
+-- alertas pasadas y el estado del celular. Semilla fija: sale igual cada vez.
+update drivers set tracking_required = true
+where id in ('20000000-0000-0000-0000-000000000011', '20000000-0000-0000-0000-000000000012',
+             '20000000-0000-0000-0000-000000000013', '20000000-0000-0000-0000-000000000014');
+
+update driver_presence
+set device = '{"permission":"always","gps_enabled":true,"battery":74,"charging":false,"mocked":false,"app_version":"0.1.0","os":"android 14"}',
+    device_at = now()
+where driver_id in ('20000000-0000-0000-0000-000000000011', '20000000-0000-0000-0000-000000000013',
+                    '20000000-0000-0000-0000-000000000014');
+
+do $$
+declare
+  spec record;
+  lats float8[];
+  lngs float8[];
+  n integer;
+  m integer;
+  seg integer;
+  f float8;
+  t0 timestamptz;
+  city uuid := '10000000-0000-0000-0000-000000000001';
+begin
+  perform setseed(0.7);
+  for spec in
+    select * from (values
+      -- conductor, sectores que recorre, días atrás, minutos de recorrido
+      ('20000000-0000-0000-0000-000000000011'::uuid, array['palogrande','cable','av-santander','centro','chipre','centro','palogrande'], 0, 240),
+      ('20000000-0000-0000-0000-000000000014'::uuid, array['cable','palogrande','milan','fatima','av-santander','cable'], 0, 180),
+      ('20000000-0000-0000-0000-000000000013'::uuid, array['chipre','centro','av-santander','la-enea','av-santander','chipre'], 0, 200),
+      ('20000000-0000-0000-0000-000000000011'::uuid, array['palogrande','fatima','cable','centro','chipre','av-santander','palogrande'], 1, 540),
+      ('20000000-0000-0000-0000-000000000014'::uuid, array['cable','san-jorge','la-sultana','milan','fatima','cable'], 1, 480)
+    ) as v(driver, slugs, days_ago, minutes)
+  loop
+    select array_agg(st_y(z.center::geometry) order by o.ord), array_agg(st_x(z.center::geometry) order by o.ord)
+      into lats, lngs
+    from unnest(spec.slugs) with ordinality o(slug, ord)
+    join zones z on z.slug = 'manizales-' || o.slug;
+    n := array_length(lats, 1);
+
+    if spec.days_ago = 0 then
+      t0 := now() - make_interval(mins => spec.minutes);
+    else
+      t0 := (date_trunc('day', now() at time zone 'America/Bogota') at time zone 'America/Bogota')
+            - make_interval(days => spec.days_ago) + interval '7 hours';
+    end if;
+
+    -- Un punto por minuto (como el muestreo real), con algo de ruido de GPS.
+    for m in 0 .. spec.minutes - 1 loop
+      seg := least(floor(m::float8 / spec.minutes * (n - 1))::int, n - 2);
+      f := (m::float8 / spec.minutes * (n - 1)) - seg;
+      insert into driver_location_history (driver_id, position, recorded_at)
+      values (
+        spec.driver,
+        st_setsrid(st_makepoint(
+          lngs[seg + 1] + (lngs[seg + 2] - lngs[seg + 1]) * f + (random() - 0.5) * 0.0006,
+          lats[seg + 1] + (lats[seg + 2] - lats[seg + 1]) * f + (random() - 0.5) * 0.0006), 4326)::geography,
+        t0 + make_interval(mins => m));
+    end loop;
+
+    if spec.days_ago = 0 then
+      -- El turno abierto de hoy empezó cuando arranca el recorrido.
+      update driver_shifts set started_at = t0 where driver_id = spec.driver and ended_at is null;
+    else
+      insert into driver_shifts (driver_id, city_zone_id, started_at, ended_at)
+      values (spec.driver, city, t0, t0 + make_interval(mins => spec.minutes));
+    end if;
+  end loop;
+
+  -- Alertas pasadas (ya resueltas) para el historial.
+  insert into tracking_alerts (driver_id, city_zone_id, reason, opened_at, resolved_at, resolved_by) values
+    ('20000000-0000-0000-0000-000000000011', city, 'sin_senal',
+       (date_trunc('day', now() at time zone 'America/Bogota') at time zone 'America/Bogota') - interval '1 day' + interval '12 hours 10 minutes',
+       (date_trunc('day', now() at time zone 'America/Bogota') at time zone 'America/Bogota') - interval '1 day' + interval '12 hours 16 minutes', 'recuperada'),
+    ('20000000-0000-0000-0000-000000000014', city, 'gps_apagado',
+       (date_trunc('day', now() at time zone 'America/Bogota') at time zone 'America/Bogota') - interval '1 day' + interval '14 hours',
+       (date_trunc('day', now() at time zone 'America/Bogota') at time zone 'America/Bogota') - interval '1 day' + interval '14 hours 14 minutes', 'recuperada'),
+    ('20000000-0000-0000-0000-000000000014', city, 'bateria_critica',
+       (date_trunc('day', now() at time zone 'America/Bogota') at time zone 'America/Bogota') - interval '1 day' + interval '16 hours 30 minutes',
+       (date_trunc('day', now() at time zone 'America/Bogota') at time zone 'America/Bogota') - interval '1 day' + interval '16 hours 35 minutes', 'recuperada'),
+    ('20000000-0000-0000-0000-000000000013', city, 'permiso_revocado',
+       now() - interval '90 minutes', now() - interval '87 minutes', 'recuperada');
 end $$;

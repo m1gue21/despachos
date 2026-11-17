@@ -73,6 +73,25 @@ export function formatWhatsappMessage(r: Pick<
   return lines.join('\n');
 }
 
+export const ALERT_REASON_LABEL: Record<string, string> = {
+  sin_senal: 'Sin señal',
+  gps_apagado: 'GPS apagado',
+  permiso_revocado: 'Quitó el permiso de ubicación',
+  bateria_critica: 'Batería casi agotada',
+  ubicacion_falsa: 'Ubicación falsa',
+  modo_sin_gps: 'Sin ubicación en vivo',
+};
+
+// Qué decirle al administrador (y qué hacer) según la causa de la alerta.
+export const ALERT_REASON_HINT: Record<string, string> = {
+  sin_senal: 'La app puede estar cerrada o sin datos. Llámalo.',
+  gps_apagado: 'Apagó el GPS del celular. Pídele que lo encienda.',
+  permiso_revocado: 'La app ya no tiene permiso de ubicación "todo el tiempo".',
+  bateria_critica: 'Al celular le queda menos del 5 %. Probablemente se apague.',
+  ubicacion_falsa: 'El celular reporta una ubicación simulada (app de GPS falso).',
+  modo_sin_gps: 'Está en turno pero no comparte su ubicación en vivo.',
+};
+
 // Etiquetas que el cliente puede elegir al calificar (validadas en la base).
 export const RATING_TAGS: { key: string; label: string; positive: boolean }[] = [
   { key: 'puntual', label: 'Puntual', positive: true },

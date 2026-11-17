@@ -202,3 +202,107 @@ it('el cliente califica por el enlace y el admin ve el desempeño', async () => 
   assert.ok(detail.data.ratings.some((r: any) => r.comment === 'Excelente'));
   assert.ok(detail.data.tags.some((t: any) => t.tag === 'puntual'));
 });
+
+it('asignación asistida: propone, el admin aprueba, el conductor rechaza y propone al siguiente', async () => {
+  const op = await login('op.manizales@despacho.local');
+  const ana = await login('ana@despacho.local');
+  const CITY = '10000000-0000-0000-0000-000000000001';
+  const ANA = '20000000-0000-0000-0000-000000000001';
+  const CARLOS = '20000000-0000-0000-0000-000000000003';
+
+  // Ana en vivo junto al Cable; Carlos (sin app) disponible en el Centro (seed).
+  const consent = (await call<any>('/driver/me', ana)).data.consent.current_version;
+  await call('/driver/consent', ana, { version: consent, accepted: true });
+  await call('/driver/presence', ana, { status: 'available', location_mode: 'live' }, 'PATCH');
+  await call('/driver/location', ana, { lat: 5.0566, lng: -75.4906, accuracy: 10 });
+
+  const created = await call<any>('/requests', op, {
+    city_zone_id: CITY,
+    service: 'delivery',
+    pickup_text: 'Droguería en El Cable',
+    pickup_sector_id: (await call<any[]>(`/zones?city=${CITY}`, op)).data.find((z) => z.slug === 'manizales-cable').id,
+  });
+  const id = created.data.id as string;
+
+  // 1) Arriero propone a Ana, con la razón.
+  let proposals = (await call<any[]>(`/proposals?city=${CITY}`, op)).data;
+  let mine = proposals.find((p) => p.request_id === id);
+  assert.equal(mine.driver_id, ANA);
+  assert.match(mine.reason, /mismo sector/);
+
+  // 2) El admin aprueba = ofrecer. Ya no es "sin asignar".
+  assert.equal((await call(`/requests/${id}/transition`, op, { action: 'offer', payload: { driver_id: ANA } })).status, 200);
+  assert.ok(!(await call<any[]>(`/proposals?city=${CITY}`, op)).data.some((p) => p.request_id === id));
+
+  // 3) Ana rechaza → vuelve a "sin asignar" y la propuesta pasa al siguiente (Carlos).
+  assert.equal((await call(`/requests/${id}/transition`, ana, { action: 'reject', payload: { reason: 'rejected' } })).status, 200);
+  proposals = (await call<any[]>(`/proposals?city=${CITY}`, op)).data;
+  mine = proposals.find((p) => p.request_id === id);
+  assert.equal(mine.driver_id, CARLOS);
+  assert.equal(mine.has_app, false);
+  assert.equal(mine.declined, 1);
+
+  const cands = (await call<any>(`/requests/${id}/candidates`, op)).data;
+  assert.deepEqual(cands.declined.map((d: any) => [d.driver_id, d.why]), [[ANA, 'rejected']]);
+  assert.ok(!cands.candidates.some((c: any) => c.driver_id === ANA));
+
+  // 4) Sin app: aprobar = asignación directa.
+  assert.equal((await call(`/requests/${id}/transition`, op, { action: 'assign', payload: { driver_id: CARLOS } })).status, 200);
+});
+
+it('ubicación obligatoria en turno, estado del dispositivo y alertas', async () => {
+  const op = await login('op.manizales@despacho.local');
+  const admin = await login('admin@despacho.local');
+  const CITY = '10000000-0000-0000-0000-000000000001';
+  const bruno = await login('bruno@despacho.local');
+  const BRUNO = '20000000-0000-0000-0000-000000000002';
+
+  // El admin exige ubicación en vivo a Bruno.
+  assert.equal((await call(`/drivers/${BRUNO}`, admin, { tracking_required: true }, 'PATCH')).status, 200);
+  const consent = (await call<any>('/driver/me', bruno)).data.consent.current_version;
+  await call('/driver/consent', bruno, { version: consent, accepted: true });
+
+  // En turno sin ubicación en vivo: rechazado. Con ubicación en vivo: ok.
+  const noLive = await call<any>('/driver/presence', bruno, { status: 'available', location_mode: 'zone' }, 'PATCH');
+  assert.equal(noLive.status, 409);
+  assert.equal(noLive.data.error.code, 'live_required');
+  assert.equal((await call('/driver/presence', bruno, { status: 'available', location_mode: 'live' }, 'PATCH')).status, 200);
+  // Estando en turno tampoco puede pasarse a zona…
+  assert.equal((await call('/driver/presence', bruno, { location_mode: 'zone' }, 'PATCH')).status, 409);
+  // …pero terminar el turno siempre se puede.
+  await call('/driver/location', bruno, { lat: 5.0605, lng: -75.497, accuracy: 10 });
+
+  // La app reporta el estado del celular.
+  const dev = await call<any>('/driver/device', bruno, {
+    permission: 'always', gps_enabled: true, battery: 64, charging: false, mocked: false, app_version: '0.1.0', os: 'android 14',
+  });
+  assert.equal(dev.status, 200);
+  assert.equal(dev.data.tracking_required, true);
+  assert.equal((await call('/driver/device', bruno, { permission: 'nunca' })).status, 400);
+
+  // Sin señal fresca → el job abre alerta con la causa que reporta el dispositivo.
+  await ownerPool.query(`update driver_presence set last_seen_at = now() - interval '6 minutes',
+     device = jsonb_set(device, '{gps_enabled}', 'false'), device_at = now() where driver_id = $1`, [BRUNO]);
+  await ownerPool.query('select refresh_tracking_alerts()');
+  const open = (await call<any[]>(`/alerts?city=${CITY}&open=1`, op)).data;
+  const mine = open.find((a) => a.driver_id === BRUNO);
+  assert.equal(mine.reason, 'gps_apagado');
+  assert.equal((await call<any[]>(`/drivers?city=${CITY}`, op)).data.find((d) => d.id === BRUNO).alert_reason, 'gps_apagado');
+
+  // Recorrido de hoy: turno, y la alerta cuenta como tiempo sin señal.
+  const route = (await call<any>(`/drivers/${BRUNO}/route`, op)).data;
+  assert.equal(route.shifts.length >= 1, true);
+  assert.equal(route.alerts.some((a: any) => a.reason === 'gps_apagado'), true);
+  assert.equal(typeof route.km, 'number');
+  assert.equal((await call(`/drivers/${BRUNO}/route?date=hoy`, op)).status, 400);
+
+  // La señal vuelve y se cierra sola.
+  await ownerPool.query(`update driver_presence set last_seen_at = now() where driver_id = $1`, [BRUNO]);
+  await ownerPool.query('select refresh_tracking_alerts()');
+  assert.equal((await call<any[]>(`/alerts?city=${CITY}&open=1`, op)).data.some((a) => a.driver_id === BRUNO), false);
+  const hist = (await call<any[]>(`/alerts?city=${CITY}&days=1`, op)).data.find((a) => a.driver_id === BRUNO);
+  assert.equal(hist.resolved_by, 'recuperada');
+
+  // Terminar turno.
+  assert.equal((await call('/driver/presence', bruno, { status: 'offline', location_mode: 'zone' }, 'PATCH')).status, 200);
+});

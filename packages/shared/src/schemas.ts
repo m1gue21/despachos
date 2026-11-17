@@ -60,6 +60,8 @@ export const driverInputSchema = z.object({
   plate: optionalText,
   service_types: z.array(serviceTypeSchema).min(1),
   active: z.boolean().default(true),
+  // Ubicación en vivo obligatoria mientras esté en turno (control del despacho).
+  tracking_required: z.boolean().default(false),
 });
 export type DriverInput = z.infer<typeof driverInputSchema>;
 

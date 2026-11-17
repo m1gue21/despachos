@@ -59,7 +59,84 @@ export interface DriverRow {
   updated_by: string | null;
   updated_at: string;
   is_stale: boolean;
+  tracking_required: boolean;
+  device: DeviceState | null;
+  device_at: string | null;
+  alert_reason: AlertReason | null;
+  alert_since: string | null;
   active_requests?: number;
+}
+
+// Lo que reporta la app nativa del conductor sobre su celular.
+export interface DeviceState {
+  permission: 'always' | 'foreground' | 'denied';
+  gps_enabled: boolean;
+  battery: number | null;
+  charging: boolean;
+  mocked: boolean;
+  app_version: string;
+  os: string;
+}
+
+export type AlertReason = 'sin_senal' | 'gps_apagado' | 'permiso_revocado' | 'bateria_critica' | 'ubicacion_falsa' | 'modo_sin_gps';
+
+export interface TrackingAlert {
+  id: number;
+  driver_id: string;
+  driver_name: string;
+  reason: AlertReason;
+  opened_at: string;
+  resolved_at: string | null;
+  resolved_by: 'recuperada' | 'turno_terminado' | null;
+  minutes: number;
+}
+
+// Propuesta de asignación: el administrador la aprueba con un clic.
+export interface Candidate {
+  driver_id: string;
+  display_name: string;
+  vehicle: VehicleType;
+  has_app: boolean;
+  location_mode: LocationMode;
+  sector_name: string | null;
+  distance_m: number | null;
+  same_sector: boolean;
+  services_today: number;
+  reason: string;
+}
+
+export interface Proposal {
+  request_id: string;
+  driver_id: string;
+  display_name: string;
+  vehicle: VehicleType;
+  has_app: boolean;
+  distance_m: number | null;
+  reason: string;
+  declined: number;
+}
+
+export interface CandidatesResponse {
+  candidates: Candidate[];
+  declined: { driver_id: string; display_name: string; why: 'rejected' | 'timeout' }[];
+}
+
+export interface RoutePoint {
+  lat: number;
+  lng: number;
+  t: string;
+}
+
+export interface RouteResponse {
+  date: string;
+  points: RoutePoint[];
+  km: number;
+  first_at: string | null;
+  last_at: string | null;
+  shifts: { started_at: string; ended_at: string | null }[];
+  shift_minutes: number;
+  alerts: TrackingAlert[];
+  silent_minutes: number;
 }
 
 export interface RequestRow {

@@ -7,9 +7,12 @@ import { HttpError } from '../errors.js';
 import { presencePatch, presenceUpdateSql } from './drivers.js';
 import { REQUEST_SELECT } from './sql.js';
 
-// v2: agrega que el cliente de un servicio asignado puede ver la ubicación
-// del mensajero por un enlace temporal mientras dura el servicio.
-export const CONSENT_VERSION = '2026-10-v2';
+// v2: el cliente de un servicio asignado puede ver la ubicación del mensajero
+// por un enlace temporal mientras dura el servicio.
+// v3: durante el turno la ubicación puede ser obligatoria (el despacho la ve y
+// recibe alertas si se pierde), la app reporta el estado del celular (permiso,
+// GPS, batería) y el historial de recorrido lo ven los operadores.
+export const CONSENT_VERSION = '2026-11-v3';
 
 async function myDriverId(db: Db): Promise<string> {
   const { rows } = await db.query(`select my_driver_id() as id`);
@@ -81,6 +84,16 @@ export default async function driverAppRoutes(app: FastifyInstance) {
           throw new HttpError(403, 'consent_required', 'Acepta el consentimiento para compartir ubicación en vivo');
         }
       }
+      // Ubicación obligatoria: no se puede estar en turno (disponible/ocupado)
+      // sin compartirla en vivo. Terminar el turno (desconectado) siempre se puede.
+      const cur = await board(db, id);
+      if (cur.tracking_required) {
+        const status = b.status ?? cur.status;
+        const mode = b.location_mode ?? cur.location_mode;
+        if (status !== 'offline' && mode !== 'live') {
+          throw new HttpError(409, 'live_required', 'Tu turno requiere compartir la ubicación en vivo. Termina el turno si no quieres compartirla.');
+        }
+      }
       const { sets, params } = presenceUpdateSql(b);
       if (sets.length === 0) throw new HttpError(400, 'bad_payload', 'Nada que actualizar');
       await db.query(`update driver_presence set ${sets.join(', ')} where driver_id = $1`, [id, ...params]);
@@ -106,6 +119,28 @@ export default async function driverAppRoutes(app: FastifyInstance) {
         [id, b.lng, b.lat, b.accuracy ?? null],
       );
       return { accepted: r.rowCount === 1 };
+    });
+  });
+
+  // La app nativa reporta el estado de su celular: permiso, GPS, batería y
+  // ubicación simulada. Sirve para decir POR QUÉ se perdió la señal.
+  app.post('/driver/device', async (req) => {
+    const b = z
+      .object({
+        permission: z.enum(['always', 'foreground', 'denied']),
+        gps_enabled: z.boolean(),
+        battery: z.number().min(0).max(100).nullable(),
+        charging: z.boolean().default(false),
+        mocked: z.boolean().default(false),
+        app_version: z.string().max(20),
+        os: z.string().max(40),
+      })
+      .parse(req.body);
+    return withUser(req.session.userId, async (db) => {
+      const id = await myDriverId(db);
+      await db.query(`update driver_presence set device = $2, device_at = now() where driver_id = $1`, [id, JSON.stringify(b)]);
+      const d = await board(db, id);
+      return { ok: true, tracking_required: d.tracking_required, alert_reason: d.alert_reason };
     });
   });
 

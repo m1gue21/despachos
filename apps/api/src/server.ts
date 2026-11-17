@@ -10,6 +10,7 @@ import { startJobs } from './jobs.js';
 import { addClient, startListener } from './realtime.js';
 import authRoutes from './routes/auth.js';
 import catalogRoutes from './routes/catalog.js';
+import controlRoutes from './routes/control.js';
 import driverAppRoutes from './routes/driver-app.js';
 import driverRoutes from './routes/drivers.js';
 import metricsRoutes from './routes/metrics.js';
@@ -68,6 +69,7 @@ export async function buildServer() {
   await app.register(metricsRoutes);
   await app.register(trackingRoutes);
   await app.register(performanceRoutes);
+  await app.register(controlRoutes);
 
   return app;
 }
