@@ -22,12 +22,12 @@ describe('presencia', () => {
         ]);
       },
       async (c) => {
-        // Se salta el trigger que renueva zone_confirmed_at.
-        await c.query(`alter table driver_presence disable trigger driver_presence_rules`);
+        // Se salta el trigger que renueva zone_confirmed_at (sin candados de tabla).
+        await c.query(`set local session_replication_role = replica`);
         await c.query(`update driver_presence set zone_confirmed_at = now() - interval '46 minutes' where driver_id = $1`, [
           ID.carlosDriver,
         ]);
-        await c.query(`alter table driver_presence enable trigger driver_presence_rules`);
+        await c.query(`set local session_replication_role = origin`);
       },
     );
   });
