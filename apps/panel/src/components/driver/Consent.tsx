@@ -9,9 +9,9 @@ export function Consent({ onAccept, onDecline }: { onAccept: () => void; onDecli
   const items: [string, string][] = [
     ['Qué recogemos', 'Solo si activas "Ubicación en vivo": tu posición GPS cada pocos segundos mientras esta página esté abierta. Sin activarla, solo el sector que tú eliges.'],
     ['Para qué', 'Para que el operador te asigne servicios cercanos y sepa cómo va un servicio en curso.'],
-    ['Quién la ve', 'Los operadores de tu ciudad y, mientras le haces un servicio, el cliente de ese servicio por un enlace temporal. Otros conductores no la ven.'],
-    ['Cuánto se guarda', 'La posición actual se reemplaza cada vez. El historial se borra automáticamente a los 30 días.'],
-    ['Tu control', 'Puedes apagar la ubicación en vivo cuando quieras, sin perder el servicio que estés haciendo.'],
+    ['Quién la ve', 'Los operadores y administradores de tu ciudad, también tu recorrido de cada día. Mientras le haces un servicio a un cliente, ese cliente ve tu posición por un enlace temporal. Otros conductores no.'],
+    ['Cuánto se guarda', 'El recorrido y las alertas se guardan 30 días y luego se borran.'],
+    ['Tu control', 'Puedes apagar la ubicación en vivo cuando quieras, sin perder el servicio que estés haciendo. Si tu despacho exige ubicación en turno, necesitas la app del conductor.'],
   ];
   return (
     <div className="mx-auto max-w-md space-y-4 p-5">

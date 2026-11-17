@@ -4,6 +4,7 @@
 import type { LocationObject } from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import { api } from './api';
+import { reportDevice } from './health';
 import { HEARTBEAT_MS, LOCATION_TASK, MIN_MOVE_M } from './config';
 
 interface Ping {
@@ -23,6 +24,8 @@ export const liveState = {
   pending: null as Ping | null,
   sending: false,
   failures: 0,
+  // ¿La última ubicación venía marcada como simulada? (Android)
+  mocked: false,
   listeners: new Set<() => void>(),
 };
 
@@ -63,6 +66,9 @@ export function handleLocations(locations: LocationObject[]) {
     at: last.timestamp,
   };
   liveState.lastFixAt = Date.now();
+  liveState.mocked = last.mocked === true;
+  // El estado del celular también se reporta desde aquí: sigue funcionando con la pantalla bloqueada.
+  void reportDevice(liveState.mocked);
   const moved = !liveState.lastSent || distanceM(liveState.lastSent, ping) >= MIN_MOVE_M;
   const stale = Date.now() - liveState.lastSentAt >= HEARTBEAT_MS;
   if (moved || stale || liveState.pending) {

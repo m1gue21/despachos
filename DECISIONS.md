@@ -3,6 +3,46 @@
 Registro de lo que se decidió donde el spec era ambiguo o donde se cambió
 algo marcado como DECISIÓN. Lo más nuevo arriba.
 
+## 2026-11-17 · Control de repartidores y asignación asistida (piloto Android)
+
+**Pedido:** el administrador de un grupo de domicilios quiere control total de la
+ubicación de los repartidores y que Arriero asigne los pedidos solo, con su
+aprobación. Android primero; iPhone después. Ver [docs/PILOTO.md](docs/PILOTO.md).
+
+- **La app nativa pasa a ser el canal del piloto** (la web del conductor sigue para
+  quien no necesita control: no puede dar ubicación con pantalla bloqueada).
+- **"100 %" = enterarse al instante cuando se pierde**, no recibirla siempre. Alerta
+  si un conductor con ubicación obligatoria, en turno (disponible/ocupado), no está en
+  vivo o su última señal tiene más de `LIVE_STALE_SECONDS` (120 s); el job revisa cada
+  15 s. La causa sale del estado del celular reportado en los últimos 3 min.
+- **Ubicación obligatoria por conductor** (`drivers.tracking_required`), no por ciudad:
+  el piloto se hace con 5–10 repartidores marcados; el resto sigue como antes. Se exige
+  en el API (`409 live_required`) y no en un trigger de base: `transition_request`
+  actualiza la presencia (ocupado/disponible) y un trigger habría roto el cierre de
+  servicios de quien tuviera la ubicación caída.
+- **El rastreo es solo en turno**: el conductor inicia y termina su turno; fuera de
+  turno no se comparte nada. Es lo que sostiene el consentimiento (Ley 1581): si no
+  pudiera terminar el turno, el consentimiento no sería libre. Consentimiento `v3`.
+- **Asignación asistida, no automática**: `rank_drivers` ordena por distancia a la
+  recogida (posición en vivo o centro del sector), −200 m si es del mismo sector,
+  +500 m si no tiene app, y a igualdad quien lleva menos servicios hoy. Excluye
+  ocupados, desactualizados, que no presten el servicio y a quien ya rechazó o dejó
+  vencer ese pedido. El administrador aprueba (ofrecer, o asignar directo si no tiene
+  app). Un modo "ofrecer sin aprobar" por ciudad queda como paso siguiente, apagado
+  por defecto, cuando el administrador confíe en las propuestas.
+- **Turnos** (`driver_shifts`) por trigger sobre la presencia: abre al pasar de
+  desconectado a disponible/ocupado y cierra al desconectarse. Da las horas de turno.
+- **Historial de recorrido**: se usa el muestreo existente (1 punto por minuto, 30
+  días). Basta para ver la ruta y estimar km; no para medir velocidad.
+- **Ubicación simulada**: solo Android la expone (`location.mocked`); se alerta aunque
+  haya señal. No es a prueba de todo, pero cubre las apps de GPS falso comunes.
+- **iPhone**: mismo código; falta cuenta de Apple Developer y TestFlight (docs/PILOTO.md).
+- **Pruebas de base en serie** (`--test-concurrency=1`) y sin `ALTER TABLE` dentro de
+  los tests (usan `session_replication_role = replica`): los archivos en paralelo
+  generaban deadlocks por filas compartidas.
+- **Pendiente**: la rama `demo-sin-backend` no tiene estas funciones en su servidor
+  simulado; no se fusionó `main` en ella para no degradar la demo desplegada.
+
 ## 2026-10-11 · Calificaciones y desempeño (el spec las dejaba fuera del MVP, §2)
 
 **Pedido:** que el admin vea estadísticas individuales y un puntaje por

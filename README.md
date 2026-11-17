@@ -9,6 +9,7 @@ puede seguir su pedido con un enlace temporal.
 - Spec del MVP: [docs/SPEC_MVP_despacho_local.md](docs/SPEC_MVP_despacho_local.md)
 - Decisiones tomadas en el camino: [DECISIONS.md](DECISIONS.md)
 - Despliegue: [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md)
+- Piloto con control de ubicación y asignación asistida: [docs/PILOTO.md](docs/PILOTO.md)
 - Marca (nombre, logo, colores, voz): [docs/MARCA.md](docs/MARCA.md) · landing en
   [apps/landing](apps/landing)
 
@@ -23,6 +24,7 @@ puede seguir su pedido con un enlace temporal.
 | 4 · Conductor (web en `/conductor`) | ✅ · ⏳ probar en celulares reales con https |
 | Extra · Seguimiento para el cliente | ✅ enlace temporal `/seguimiento/<token>` |
 | Extra · Calificaciones y desempeño | ✅ el cliente califica en el enlace; el admin ve puntaje y estadísticas |
+| Piloto · Control de repartidores y asignación asistida | ✅ código · ⏳ probar la app en celulares reales ([docs/PILOTO.md](docs/PILOTO.md)) |
 | 5 · Parser y productividad | ✅ (Claude con key, reglas sin key) |
 | 6 · Métricas y entrega | ✅ métricas, retención, rate limit · guía de despliegue sin probar en la nube |
 
@@ -150,12 +152,14 @@ tiempos de respuesta, recogida y entrega, distribución de estrellas,
 etiquetas y comentarios. La fórmula está explicada en la misma página y en
 `DECISIONS.md`. El seed de demo trae 14 días de historial para verlo con datos.
 
-### App nativa (alternativa)
+### App nativa del conductor (piloto)
 
 `apps/driver` es una app Expo con ubicación en segundo plano real (pantalla
-bloqueada). No es el canal principal; queda por si la web no alcanza.
-Requiere un development build con EAS (`npx eas-cli@latest build --profile
-development --platform android`) y `pnpm dev:driver`.
+bloqueada), turno obligatorio con chequeo del celular y reporte al despacho.
+Es el canal para los repartidores con **ubicación obligatoria** (ver
+[docs/PILOTO.md](docs/PILOTO.md)). Para pruebas necesita un development build:
+`npx eas-cli@latest build --profile development --platform android` y
+`pnpm dev:driver`. Pruebas de su lógica: `pnpm --filter @despacho/driver test`.
 
 ## Primer admin en un entorno nuevo
 

@@ -1,4 +1,4 @@
-import type { DriverOffer, DriverRow, DriverStatus, RequestRow } from '@despacho/shared';
+import type { DeviceState, DriverOffer, DriverRow, DriverStatus, RequestRow } from '@despacho/shared';
 import { StatusBar } from 'expo-status-bar';
 import * as SecureStore from 'expo-secure-store';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -6,8 +6,10 @@ import { ActivityIndicator, Alert, AppState, SafeAreaView, Vibration, View } fro
 import { ApiError, api, loadToken, saveToken, unauthorized } from './api';
 import { LOCATION_SILENCE_MS } from './config';
 import { isLiveRunning, startLive, stopLive } from './live';
+import { reportDevice } from './health';
 import { flushPending, liveState } from './location-task';
 import { notifyLocal, setupNotifications } from './notifications';
+import { beginShift, finishShift, loadShiftStart, saveShiftStart } from './shift';
 import { useRealtime } from './realtime';
 import { ActiveServiceCard } from './screens/ActiveService';
 import { BatteryGuideScreen } from './screens/BatteryGuide';
@@ -39,6 +41,9 @@ export default function App() {
   const [lastSyncAt, setLastSyncAt] = useState<number | null>(null);
   const [liveBusy, setLiveBusy] = useState(false);
   const [liveRunning, setLiveRunning] = useState(false);
+  const [shiftStartedAt, setShiftStartedAt] = useState<number | null>(null);
+  const [shiftBusy, setShiftBusy] = useState(false);
+  const [device, setDevice] = useState<DeviceState | null>(null);
   const [, force] = useState(0);
   const seenOffers = useRef(new Set<string>());
 
@@ -87,6 +92,7 @@ export default function App() {
         await refresh();
       }
       setLiveRunning(await isLiveRunning());
+      setShiftStartedAt(await loadShiftStart());
       setBooting(false);
     })();
   }, [refresh]);
@@ -95,7 +101,7 @@ export default function App() {
   useEffect(() => {
     if (!me || me.consent.valid) return;
     void SecureStore.getItemAsync(CONSENT_DECLINED_KEY).then((v) => {
-      if (!v) setScreen('consent');
+      if (!v || me.driver.tracking_required) setScreen('consent');
     });
   }, [me]);
 
@@ -146,7 +152,7 @@ export default function App() {
 
   // Sin ubicaciones durante un rato estando en vivo → volver a zona y avisar.
   useEffect(() => {
-    if (me?.driver.location_mode !== 'live') return;
+    if (me?.driver.location_mode !== 'live' || me.driver.tracking_required) return;
     const startedAt = Date.now();
     const t = setInterval(async () => {
       const last = Math.max(liveState.lastFixAt, startedAt);
@@ -159,7 +165,7 @@ export default function App() {
       }
     }, 30_000);
     return () => clearInterval(t);
-  }, [me?.driver.location_mode, patchPresence]);
+  }, [me?.driver.location_mode, me?.driver.tracking_required, patchPresence]);
 
   // Si el servidor dice live pero la tarea no corre (p. ej. tras reinstalar), arrancarla.
   useEffect(() => {
@@ -167,9 +173,76 @@ export default function App() {
     void (async () => {
       const r = await startLive(me.settings.live_ping_seconds);
       if (r.ok) setLiveRunning(true);
-      else await patchPresence({ location_mode: 'zone' });
+      // Con ubicación obligatoria no se baja a zona: el panel ya alerta y el chequeo dice qué arreglar.
+      else if (!me.driver.tracking_required) await patchPresence({ location_mode: 'zone' });
     })();
   }, [me, liveRunning, liveBusy, patchPresence]);
+
+  // En turno: vigilar el servicio de ubicación y reportar el estado del celular.
+  const inShift = me?.driver.status !== undefined && me.driver.status !== 'offline';
+  useEffect(() => {
+    if (!authed || !inShift) {
+      setDevice(null);
+      return;
+    }
+    const check = async () => {
+      setDevice(await reportDevice(liveState.mocked));
+      // Watchdog: si el servicio se cayó (Android lo mató) y hay permiso, reiniciarlo.
+      if (me?.driver.location_mode === 'live' && !(await isLiveRunning())) {
+        const r = await startLive(me.settings.live_ping_seconds);
+        setLiveRunning(r.ok);
+      }
+    };
+    void check();
+    const t = setInterval(() => void check(), 20_000);
+    const sub = AppState.addEventListener('change', (st) => st === 'active' && void check());
+    return () => {
+      clearInterval(t);
+      sub.remove();
+    };
+  }, [authed, inShift, me?.driver.location_mode, me?.settings.live_ping_seconds]);
+
+  const startShift = async () => {
+    if (!me) return;
+    if (!me.consent.valid) {
+      setScreen('consent');
+      return;
+    }
+    setShiftBusy(true);
+    try {
+      const r = await beginShift(me.settings.live_ping_seconds);
+      if (r.ok) {
+        setShiftStartedAt(r.startedAt);
+        setLiveRunning(true);
+      } else {
+        Alert.alert('No se pudo iniciar el turno', r.message);
+      }
+      await refresh();
+    } finally {
+      setShiftBusy(false);
+    }
+  };
+
+  const endShift = async () => {
+    setShiftBusy(true);
+    try {
+      await finishShift();
+      setLiveRunning(false);
+      setShiftStartedAt(null);
+      setDevice(null);
+      await refresh();
+    } finally {
+      setShiftBusy(false);
+    }
+  };
+
+  useEffect(() => {
+    if (inShift && shiftStartedAt === null) {
+      const t = Date.now();
+      setShiftStartedAt(t);
+      void saveShiftStart(t);
+    }
+  }, [inShift, shiftStartedAt]);
 
   const toggleLive = async (on: boolean) => {
     if (!me) return;
@@ -265,7 +338,7 @@ export default function App() {
           onReject={() => transition(offer.id, 'reject', { reason: 'rejected' })}
         />
       ) : screen === 'consent' ? (
-        <ConsentScreen onAccept={acceptConsent} onDecline={declineConsent} />
+        <ConsentScreen required={me.driver.tracking_required} onAccept={acceptConsent} onDecline={declineConsent} />
       ) : screen === 'history' ? (
         <HistoryScreen services={services} onClose={() => setScreen('home')} />
       ) : screen === 'battery' ? (
@@ -277,13 +350,12 @@ export default function App() {
           active={active}
           online={online}
           lastSyncAt={lastSyncAt}
-          liveInfo={{
-            running: liveRunning,
-            lastFixAt: liveState.lastFixAt,
-            lastSentAt: liveState.lastSentAt,
-            failures: liveState.failures,
-            busy: liveBusy,
-          }}
+          live={{ running: liveRunning, lastSentAt: liveState.lastSentAt, failures: liveState.failures }}
+          shiftStartedAt={shiftStartedAt}
+          device={device}
+          busy={shiftBusy || liveBusy}
+          onStartShift={() => void startShift()}
+          onEndShift={() => void endShift()}
           onStatus={(st: DriverStatus) => void patchPresence({ status: st })}
           onSector={(id) => void patchPresence({ sector_zone_id: id, location_mode: 'zone' })}
           onConfirmZone={() => void patchPresence({ confirm: true })}
