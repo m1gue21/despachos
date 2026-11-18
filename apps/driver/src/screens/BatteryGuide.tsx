@@ -1,5 +1,5 @@
-import * as IntentLauncher from 'expo-intent-launcher';
-import { Linking, Platform, ScrollView, Text } from 'react-native';
+import { ScrollView, Text } from 'react-native';
+import { openBatterySettings } from '../settings';
 import { Button, Card, H, Muted, s } from '../ui';
 
 const BRANDS: { name: string; steps: string }[] = [
@@ -11,14 +11,6 @@ const BRANDS: { name: string; steps: string }[] = [
 ];
 
 export function BatteryGuideScreen({ onClose }: { onClose: () => void }) {
-  const openBatterySettings = async () => {
-    if (Platform.OS !== 'android') return Linking.openSettings();
-    try {
-      await IntentLauncher.startActivityAsync(IntentLauncher.ActivityAction.IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
-    } catch {
-      await Linking.openSettings();
-    }
-  };
   return (
     <ScrollView style={s.screen} contentContainerStyle={s.scroll}>
       <H style={{ fontSize: 22 }}>Que el celular no apague la app</H>

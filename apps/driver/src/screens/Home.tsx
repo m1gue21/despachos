@@ -1,5 +1,5 @@
 import { DRIVER_STATUS_LABEL, type DeviceState, type DriverRow, type DriverStatus, type RequestRow } from '@despacho/shared';
-import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { type Problem, deviceProblems, shiftDuration, signalAge } from '../device-logic';
 import { IN_EXPO_GO } from '../live';
 import { openAppSettings, openBatterySettings, openLocationSettings } from '../settings';
@@ -142,7 +142,8 @@ export function HomeScreen({
               {p.id !== 'mock' && <Button title="Arreglar" color={colors.danger} onPress={() => void FIX[p.id]()} />}
             </View>
           ))}
-          <Button title="Evitar que el celular cierre la app" outline onPress={onBattery} />
+          {/* La guía de ahorro de batería es de marcas Android; en iPhone no aplica. */}
+          {Platform.OS === 'android' && <Button title="Evitar que el celular cierre la app" outline onPress={onBattery} />}
         </Card>
       )}
 
