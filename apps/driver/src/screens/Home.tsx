@@ -1,6 +1,7 @@
 import { DRIVER_STATUS_LABEL, type DeviceState, type DriverRow, type DriverStatus, type RequestRow } from '@despacho/shared';
 import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { type Problem, deviceProblems, shiftDuration, signalAge } from '../device-logic';
+import { IN_EXPO_GO } from '../live';
 import { openAppSettings, openBatterySettings, openLocationSettings } from '../settings';
 import { ActiveServiceCard } from './ActiveService';
 import { Button, Card, Muted, colors, s } from '../ui';
@@ -56,7 +57,8 @@ export function HomeScreen({
   const inShift = driver.status !== 'offline';
   const isLive = driver.location_mode === 'live';
   const now = Date.now();
-  const problems = device && inShift ? deviceProblems(device) : [];
+  // En Expo Go (modo prueba) "todo el tiempo" no existe: no se muestra como problema.
+  const problems = device && inShift ? deviceProblems(device).filter((p) => !(IN_EXPO_GO && p.id === 'permission')) : [];
   const signalOk = isLive && live.lastSentAt > 0 && now - live.lastSentAt < 90_000;
 
   const confirmEnd = () =>
@@ -78,6 +80,16 @@ export function HomeScreen({
         </View>
       </View>
       {lastSyncAt && <Muted>Última sincronización {signalAge(lastSyncAt, now)}</Muted>}
+
+      {IN_EXPO_GO && (
+        <View style={{ backgroundColor: '#fff7e6', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: colors.warn }}>
+          <Text style={{ fontWeight: '700', color: colors.warn }}>MODO PRUEBA (Expo Go)</Text>
+          <Text style={s.value}>
+            La ubicación solo se envía con la app abierta. Al bloquear la pantalla o cambiar de app, el despacho verá una alerta de
+            "sin señal". Para probar el segundo plano hace falta la app instalada (no Expo Go).
+          </Text>
+        </View>
+      )}
 
       {/* ── Turno ── */}
       {inShift ? (
